@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "doc-search": {
+      "command": "python",
+      "args": ["/ABSOLUTE/PATH/TO/samples/sample-05/server.py"],
+      "env": {}
+    }
+  }
+}

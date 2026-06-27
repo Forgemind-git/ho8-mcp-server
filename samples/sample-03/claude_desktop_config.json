@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "task-manager": {
+      "command": "python",
+      "args": ["/ABSOLUTE/PATH/TO/samples/sample-03/server.py"],
+      "env": {}
+    }
+  }
+}

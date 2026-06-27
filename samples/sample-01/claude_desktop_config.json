@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "customer-lookup": {
+      "command": "python",
+      "args": ["/ABSOLUTE/PATH/TO/samples/sample-01/server.py"],
+      "env": {}
+    }
+  }
+}

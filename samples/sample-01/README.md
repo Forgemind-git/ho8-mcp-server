@@ -1,0 +1,65 @@
+# Sample 01 — Customer Lookup MCP Server
+
+**Problem:** Support agents waste time copy-pasting between tools. Give Claude direct access to your customer database so it can answer "Who is alice@acmecorp.com and do they have open tickets?" in one step.
+
+**Tool exposed:** `lookup_customer`
+
+> Look up a customer by email or ID from a local JSON database.
+
+## What it returns
+
+| Field | Example |
+|---|---|
+| `customer_id` | `C001` |
+| `name` | `Alice Johnson` |
+| `email` | `alice@acmecorp.com` |
+| `plan` | `pro` |
+| `created_at` | `2023-04-12` |
+| `open_tickets` | `2` |
+
+## Quick start
+
+```bash
+# 1. Install dependencies
+pip install mcp
+
+# 2. Run the server (stdio mode — used by Claude Desktop)
+python server.py
+```
+
+## Connect to Claude Desktop
+
+Add to your `claude_desktop_config.json` (see `claude_desktop_config.json` in this folder for the snippet):
+
+```json
+{
+  "mcpServers": {
+    "customer-lookup": {
+      "command": "python",
+      "args": ["/ABSOLUTE/PATH/TO/samples/sample-01/server.py"]
+    }
+  }
+}
+```
+
+Replace `/ABSOLUTE/PATH/TO/` with the real path on your machine, then restart Claude Desktop.
+
+## Example prompts
+
+- "Look up customer C003"
+- "Is carol@enterprise.com on the enterprise plan?"
+- "How many open tickets does David Lee (C004) have?"
+
+## Test without Claude
+
+```bash
+python test_tool.py
+```
+
+Runs 5 assertions — lookup by ID, by email, open tickets count, and two not-found cases.
+
+## Extending this sample
+
+- Replace `CUSTOMERS` dict with a real DB query (`psycopg2`, `sqlite3`, etc.)
+- Add more tools: `create_customer`, `update_plan`, `list_open_tickets`
+- Add an `EMAIL_DOMAIN_INDEX` to look up all customers at a company

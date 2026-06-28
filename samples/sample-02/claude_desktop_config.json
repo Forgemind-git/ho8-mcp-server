@@ -1,11 +1,9 @@
 {
   "mcpServers": {
-    "github-stats": {
+    "TODO: server-name": {
       "command": "python",
-      "args": ["/ABSOLUTE/PATH/TO/samples/sample-02/server.py"],
-      "env": {
-        "GITHUB_TOKEN": "ghp_your_optional_token_for_higher_rate_limits"
-      }
+      "args": ["/TODO: full path to your server.py"],
+      "env": {}
     }
   }
 }

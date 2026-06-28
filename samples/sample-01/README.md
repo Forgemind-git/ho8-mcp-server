@@ -1,65 +1,23 @@
-# Sample 01 — Customer Lookup MCP Server
+# HO8 Sample 1 — Customer Lookup MCP Server
 
-**Problem:** Support agents waste time copy-pasting between tools. Give Claude direct access to your customer database so it can answer "Who is alice@acmecorp.com and do they have open tickets?" in one step.
+## Your task
+Your team keeps customer data in a sheet or database and re-answers the same lookups all day. Build an MCP server that exposes a customer_lookup tool to Claude Desktop.
 
-**Tool exposed:** `lookup_customer`
+## What you will build
+An MCP server that exposes tools to Claude Desktop (no API key — uses your Claude.ai subscription via Claude Desktop)
 
-> Look up a customer by email or ID from a local JSON database.
+## Tools to implement
+- `lookup_customer(id_or_name) -> {name, email, plan, status}`
+- `list_customers() -> [{id, name, plan}]`
 
-## What it returns
+## Data source
+CSV file or SQLite (sample data provided)
 
-| Field | Example |
-|---|---|
-| `customer_id` | `C001` |
-| `name` | `Alice Johnson` |
-| `email` | `alice@acmecorp.com` |
-| `plan` | `pro` |
-| `created_at` | `2023-04-12` |
-| `open_tickets` | `2` |
+## Setup
+1. pip install mcp
+2. Fill in the TODO sections in server.py
+3. Add your claude_desktop_config.json snippet to Claude Desktop Settings -> Developer
+4. Test by asking Claude: "TODO: write a test question"
 
-## Quick start
-
-```bash
-# 1. Install dependencies
-pip install mcp
-
-# 2. Run the server (stdio mode — used by Claude Desktop)
-python server.py
-```
-
-## Connect to Claude Desktop
-
-Add to your `claude_desktop_config.json` (see `claude_desktop_config.json` in this folder for the snippet):
-
-```json
-{
-  "mcpServers": {
-    "customer-lookup": {
-      "command": "python",
-      "args": ["/ABSOLUTE/PATH/TO/samples/sample-01/server.py"]
-    }
-  }
-}
-```
-
-Replace `/ABSOLUTE/PATH/TO/` with the real path on your machine, then restart Claude Desktop.
-
-## Example prompts
-
-- "Look up customer C003"
-- "Is carol@enterprise.com on the enterprise plan?"
-- "How many open tickets does David Lee (C004) have?"
-
-## Test without Claude
-
-```bash
-python test_tool.py
-```
-
-Runs 5 assertions — lookup by ID, by email, open tickets count, and two not-found cases.
-
-## Extending this sample
-
-- Replace `CUSTOMERS` dict with a real DB query (`psycopg2`, `sqlite3`, etc.)
-- Add more tools: `create_customer`, `update_plan`, `list_open_tickets`
-- Add an `EMAIL_DOMAIN_INDEX` to look up all customers at a company
+## Required
+Claude Desktop (free download at claude.ai/download) + your Claude.ai subscription

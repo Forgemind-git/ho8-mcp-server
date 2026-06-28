@@ -1,86 +1,24 @@
-# Sample 05 — Document Search MCP Server
+# HO8 Sample 5 — Doc Search MCP Server
 
-**Problem:** You have a folder of internal docs, README files, or knowledge-base articles, and you want Claude to search them for you — "What does our docs say about rate limits?" — without having to copy-paste file contents.
+## Your task
+Your important documents are scattered in a folder and finding the right one wastes time. Build an MCP server that searches them for Claude.
 
-**Tool exposed:** `search_docs`
+## What you will build
+An MCP server that exposes tools to Claude Desktop (no API key — uses your Claude.ai subscription via Claude Desktop)
 
-> Search a folder of `.txt` and `.md` files for matching passages.
+## Tools to implement
+- `search_docs(query) -> [{filename, snippet, path}]`
+- `read_doc(filename) -> {content}`
 
-## What it returns
+## Data source
+Local folder of .txt / .md files
 
-```json
-{
-  "query": "rate limit",
-  "folder": "/path/to/docs",
-  "result_count": 2,
-  "results": [
-    {
-      "file": "api-reference.txt",
-      "line": 15,
-      "excerpt": "Rate limits\n-----------\nStarter: 100 requests/minute\n..."
-    }
-  ]
-}
-```
+## Setup
+1. pip install mcp
+2. Add your documents to the sample-data/ folder
+3. Fill in the TODO sections in server.py
+4. Add your claude_desktop_config.json snippet to Claude Desktop Settings -> Developer
+5. Test by asking Claude: "TODO: write a test question"
 
-Each result includes ±3 lines of context around the matching line.
-
-## Quick start
-
-```bash
-# 1. Install dependencies
-pip install mcp
-
-# 2. Add some .txt or .md files to the docs/ folder (samples included)
-
-# 3. Run the server
-python server.py
-```
-
-The `docs/` folder next to `server.py` is the default search location.
-Pass a different `folder` argument to search elsewhere.
-
-## Connect to Claude Desktop
-
-```json
-{
-  "mcpServers": {
-    "doc-search": {
-      "command": "python",
-      "args": ["/ABSOLUTE/PATH/TO/samples/sample-05/server.py"]
-    }
-  }
-}
-```
-
-## Example prompts
-
-- "Search my docs for 'authentication'"
-- "What do our docs say about cancellation?"
-- "Find all mentions of 'webhook' in the API reference"
-- "Search /Users/me/projects/docs for 'deployment'"
-
-## Included sample docs
-
-| File | Content |
-|---|---|
-| `docs/getting-started.md` | Onboarding walkthrough |
-| `docs/billing.md` | Plans, pricing, and invoices |
-| `docs/api-reference.txt` | REST API endpoints and auth |
-| `docs/faq.txt` | Common questions and answers |
-
-## Test without Claude
-
-```bash
-python test_tool.py
-```
-
-Runs 7 assertions: found/not-found, case-insensitivity, context lines, empty query, bad folder.
-
-## Extending this sample
-
-- Add fuzzy / semantic search using `sentence-transformers` + a vector store
-- Walk subdirectories (already supported via `os.walk`)
-- Add support for PDF files using `pypdf`
-- Highlight the exact matching phrase in the excerpt
-- Return a `relevance_score` and sort by it
+## Required
+Claude Desktop (free download at claude.ai/download) + your Claude.ai subscription

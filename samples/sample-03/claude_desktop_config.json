@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "task-manager": {
+    "TODO: server-name": {
       "command": "python",
-      "args": ["/ABSOLUTE/PATH/TO/samples/sample-03/server.py"],
+      "args": ["/TODO: full path to your server.py"],
       "env": {}
     }
   }

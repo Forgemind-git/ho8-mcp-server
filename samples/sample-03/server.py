@@ -1,116 +1,42 @@
-"""
-Task Manager MCP Server
------------------------
-Exposes one tool: manage_tasks
-Read and write tasks from a local tasks.json file.
-Supports actions: list | add | complete
-"""
+# MCP Server: Task Manager
+# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed
+# Uses your Claude.ai subscription via Claude Desktop
 
-import json
-import os
-from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("task-manager")
+mcp = FastMCP("TODO: name your MCP server")
 
-# tasks.json lives next to this file
-TASKS_FILE = os.path.join(os.path.dirname(__file__), "tasks.json")
-
-
-def _load_tasks() -> list:
-    """Load tasks from disk, returning empty list if file doesn't exist."""
-    if not os.path.exists(TASKS_FILE):
-        return []
-    try:
-        with open(TASKS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return data if isinstance(data, list) else []
-    except (json.JSONDecodeError, OSError):
-        return []
-
-
-def _save_tasks(tasks: list) -> None:
-    """Persist tasks to disk."""
-    with open(TASKS_FILE, "w", encoding="utf-8") as f:
-        json.dump(tasks, f, indent=2)
+# TODO: Set up your data source here
+# This sample uses SQLite to store tasks locally
+# Example: import sqlite3; DB_FILE = "tasks.db"
+# Create a tasks table with columns: id, title, status, due_date
 
 
 @mcp.tool()
-def manage_tasks(action: str, task: str = "") -> str:
-    """
-    Read and write tasks from a local tasks.json file.
+def list_tasks(status: str = "") -> list:
+    """TODO: describe what this tool does and what it returns"""
+    # TODO: implement this tool
+    # It should query the SQLite DB and return a list like:
+    # [{"id": 1, "title": "...", "status": "todo"}]
+    # If status is provided, filter by it (e.g. "todo", "done")
+    raise NotImplementedError("TODO: implement list_tasks")
 
-    Args:
-        action: One of 'list', 'add', or 'complete'.
-        task: Task description (required for 'add') or task ID/name (for 'complete').
 
-    Returns:
-        Task list or confirmation of action taken.
-    """
-    action = action.strip().lower()
+@mcp.tool()
+def add_task(title: str, due: str = "") -> dict:
+    """TODO: describe what this tool does and what it returns"""
+    # TODO: implement this tool
+    # It should insert a new task and return {"id": <new_id>}
+    raise NotImplementedError("TODO: implement add_task")
 
-    if action == "list":
-        tasks = _load_tasks()
-        if not tasks:
-            return "No tasks yet. Use action='add' with a task description to create one."
 
-        lines = []
-        for t in tasks:
-            status = "DONE" if t.get("completed") else "TODO"
-            lines.append(f"[{t['id']}] [{status}] {t['title']} (added {t['created_at']})")
-        return "\n".join(lines)
-
-    elif action == "add":
-        if not task.strip():
-            return "Error: 'task' description is required for action='add'."
-
-        tasks = _load_tasks()
-        new_id = max((t["id"] for t in tasks), default=0) + 1
-        new_task = {
-            "id": new_id,
-            "title": task.strip(),
-            "completed": False,
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
-            "completed_at": None,
-        }
-        tasks.append(new_task)
-        _save_tasks(tasks)
-        return f"Task added: [{new_id}] {new_task['title']}"
-
-    elif action == "complete":
-        if not task.strip():
-            return "Error: provide a task ID or title fragment for action='complete'."
-
-        tasks = _load_tasks()
-        query = task.strip()
-
-        # Try matching by numeric ID first, then by title substring
-        matched = None
-        if query.isdigit():
-            task_id = int(query)
-            matched = next((t for t in tasks if t["id"] == task_id), None)
-        else:
-            lower_query = query.lower()
-            matched = next(
-                (t for t in tasks if lower_query in t["title"].lower()), None
-            )
-
-        if not matched:
-            return f"No task found matching '{query}'. Use action='list' to see all tasks."
-
-        if matched["completed"]:
-            return f"Task [{matched['id']}] '{matched['title']}' is already completed."
-
-        matched["completed"] = True
-        matched["completed_at"] = datetime.now().strftime("%Y-%m-%d")
-        _save_tasks(tasks)
-        return f"Task completed: [{matched['id']}] {matched['title']}"
-
-    else:
-        return f"Unknown action '{action}'. Valid actions: list, add, complete."
+@mcp.tool()
+def complete_task(id: int) -> str:
+    """TODO: describe what this tool does and what it returns"""
+    # TODO: implement this tool
+    # It should mark the task as done and return "ok" or an error message
+    raise NotImplementedError("TODO: implement complete_task")
 
 
 if __name__ == "__main__":
-    print("Starting Task Manager MCP server...")
-    print(f"Tasks file: {TASKS_FILE}")
     mcp.run()

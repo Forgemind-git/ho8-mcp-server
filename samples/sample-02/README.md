@@ -6,6 +6,18 @@
 
 > Get star count, open issue count, and last commit date for any public GitHub repo.
 
+## Use it with your Claude.ai subscription
+No API key needed — uses your Claude.ai subscription via Claude Desktop. (The GitHub public API it calls also needs no key.)
+
+1. Download **Claude Desktop** (free) from **claude.ai/download** and sign in with your normal Claude.ai account.
+2. Open a terminal in this folder and run `pip install mcp`.
+3. Open **`claude_desktop_config.json`** here and set the path in `args` to the full path of `server.py` on your computer.
+4. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `github-stats` block, and save.
+5. **Quit and reopen Claude Desktop.**
+6. Ask Claude: *"Get the GitHub stats for anthropics/anthropic-sdk-python — is it actively maintained?"*
+
+The detailed walkthrough is below.
+
 ## What it returns
 
 | Field | Example |

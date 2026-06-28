@@ -6,6 +6,18 @@
 
 > Read and write tasks from a local `tasks.json` file.
 
+## Use it with your Claude.ai subscription
+No API key needed — uses your Claude.ai subscription via Claude Desktop.
+
+1. Download **Claude Desktop** (free) from **claude.ai/download** and sign in with your normal Claude.ai account.
+2. Open a terminal in this folder and run `pip install mcp`.
+3. Open **`claude_desktop_config.json`** here and set the path in `args` to the full path of `server.py` on your computer.
+4. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `task-manager` block, and save.
+5. **Quit and reopen Claude Desktop.**
+6. Ask Claude: *"List my tasks, then add a new task 'Prepare slides for Monday standup' and confirm it was added."*
+
+The detailed walkthrough is below.
+
 ## Supported actions
 
 | `action` | `task` param | What happens |

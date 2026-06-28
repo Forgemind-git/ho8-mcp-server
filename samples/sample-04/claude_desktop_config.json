@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "TODO: server-name": {
+    "pricing-calculator": {
       "command": "python",
-      "args": ["/TODO: full path to your server.py"],
+      "args": ["/Users/you/ho8-mcp-server/samples/sample-04/server.py"],
       "env": {}
     }
   }

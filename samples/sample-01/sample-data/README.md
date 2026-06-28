@@ -1,13 +1,15 @@
 # Sample Data
 
-TODO: Add your sample data here (CSV file or SQLite database).
+This folder contains **`customers.csv`** — 8 example customers the server reads
+on startup, so the project works the moment you run it.
 
-For a CSV, create a file like `customers.csv` with columns: id, name, email, plan, status
-For SQLite, create `customers.db` with a customers table.
+Columns: `id, name, email, plan, status`
 
-Example CSV structure:
 ```
 id,name,email,plan,status
-C001,Alice Johnson,alice@example.com,pro,active
-C002,Bob Smith,bob@example.com,starter,active
+C001,Alice Johnson,alice@acmecorp.com,pro,active
+C002,Bob Smith,bob@startup.io,starter,active
 ```
+
+To use your own data, just replace the rows in `customers.csv` with your real
+customers — keep the header row the same and the server keeps working.

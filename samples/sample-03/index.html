@@ -31,15 +31,15 @@
   <p>Build an MCP server that lets Claude read and write your task list.</p>
 </header>
 <div class="starter-bar">
-  <strong>Starter branch.</strong> The files below are skeletons — open server.py and fill in the TODOs using Claude.ai.
+  <strong>Starter branch — copy &amp; use.</strong> This server already works out of the box. No API key needed — it runs on your Claude.ai subscription via Claude Desktop. Just connect it and start asking.
 </div>
 <main>
   <h2>Problem</h2>
   <p>Your tasks live in a tracker and you context-switch constantly. Build an MCP server that lets Claude read and write your task list.</p>
 
-  <h2>Tools to implement</h2>
+  <h2>Tools it gives Claude</h2>
   <ul>
-    <li><code>list_tasks(status?)</code> — returns [{id, title, status}]</li>
+    <li><code>list_tasks(status?)</code> — returns [{id, title, status, due_date}]</li>
     <li><code>add_task(title, due?)</code> — returns {id}</li>
     <li><code>complete_task(id)</code> — returns ok</li>
   </ul>
@@ -49,13 +49,15 @@
 
   <h2>Steps</h2>
   <ol>
-    <li>Open <code>server.py</code> and fill in each TODO</li>
-    <li>Run <code>pip install mcp</code> then <code>python server.py</code> to test locally</li>
-    <li>Paste the config from <code>claude_desktop_config.json</code> into Claude Desktop Settings > Developer</li>
-    <li>Restart Claude Desktop and ask: "Add a task: finish HO8"</li>
+    <li>Run <code>pip install mcp</code></li>
+    <li>(Optional) Run <code>python test_tool.py</code> to confirm everything works — you should see "All tests passed."</li>
+    <li>Edit <code>claude_desktop_config.json</code> so the path points to your copy of <code>server.py</code></li>
+    <li>Paste the config into Claude Desktop Settings &gt; Developer &gt; Edit Config, then save</li>
+    <li>Quit and reopen Claude Desktop to load the tools</li>
+    <li>Ask Claude: "What tasks are open?"</li>
   </ol>
 
-  <div class="todo">TODO: Once your server works, write a test question here that proves it works end-to-end.</div>
+  <p><strong>Try this:</strong> "Using my task-manager tools, show my open tasks, then add 'Prepare slides for Monday standup' due 2026-07-03, and list my tasks again to confirm."</p>
 </main>
 <footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
 </body>

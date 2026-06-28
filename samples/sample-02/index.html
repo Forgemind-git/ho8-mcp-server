@@ -31,13 +31,13 @@
   <p>Build an MCP server that wraps a free public API so Claude can call it as a tool.</p>
 </header>
 <div class="starter-bar">
-  <strong>Starter branch.</strong> The files below are skeletons — open server.py and fill in the TODOs using Claude.ai.
+  <strong>Starter branch — copy &amp; use.</strong> This server already works with the free Open-Meteo API. Run it, connect it to Claude Desktop, then tweak it for your own use. No API key needed — it uses your Claude.ai subscription.
 </div>
 <main>
   <h2>Problem</h2>
   <p>You rely on a public API but copy-pasting output into chat is clunky. Build an MCP server that wraps a free public API as a Claude tool.</p>
 
-  <h2>Tools to implement</h2>
+  <h2>Tools it gives Claude</h2>
   <ul>
     <li><code>get_weather(city)</code> — returns temp, condition, humidity</li>
     <li><code>get_forecast(city, days)</code> — returns a list of {date, high, low}</li>
@@ -48,13 +48,14 @@
 
   <h2>Steps</h2>
   <ol>
-    <li>Open <code>server.py</code> and fill in each TODO</li>
-    <li>Run <code>pip install mcp</code> then <code>python server.py</code> to test locally</li>
-    <li>Paste the config from <code>claude_desktop_config.json</code> into Claude Desktop Settings > Developer</li>
-    <li>Restart Claude Desktop and ask: "What is the weather in Mumbai?"</li>
+    <li>Run <code>pip install mcp</code></li>
+    <li>(Optional) Run <code>python test_tool.py</code> — you should see live weather and "All tests passed"</li>
+    <li>Edit <code>claude_desktop_config.json</code> so the path points to <code>server.py</code> on your computer</li>
+    <li>Paste that config into Claude Desktop Settings &gt; Developer, then quit and reopen Claude Desktop</li>
+    <li>Ask Claude a weather question, like "What's the weather in Mumbai?"</li>
   </ol>
 
-  <div class="todo">TODO: Once your server works, write a test question here that proves it works end-to-end.</div>
+  <div class="todo">Try this prompt in Claude Desktop: <em>"Using my weather tools, what's the weather right now in Lisbon, and give me the 3-day forecast — should I pack a raincoat?"</em></div>
 </main>
 <footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
 </body>

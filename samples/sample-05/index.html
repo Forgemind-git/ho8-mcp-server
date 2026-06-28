@@ -31,31 +31,32 @@
   <p>Build an MCP server that searches a local folder of documents for Claude.</p>
 </header>
 <div class="starter-bar">
-  <strong>Starter branch.</strong> The files below are skeletons — open server.py and fill in the TODOs using Claude.ai.
+  <strong>Starter branch — copy &amp; use.</strong> This server already works — no API key needed (it uses your Claude.ai subscription via Claude Desktop). Just point it at your docs and go.
 </div>
 <main>
   <h2>Problem</h2>
   <p>Your important documents are scattered in a folder and finding the right one wastes time. Build an MCP server that searches them for Claude.</p>
 
-  <h2>Tools to implement</h2>
+  <h2>Tools it gives Claude</h2>
   <ul>
     <li><code>search_docs(query)</code> — returns [{filename, snippet, path}]</li>
     <li><code>read_doc(filename)</code> — returns {content}</li>
   </ul>
 
   <h2>Data source</h2>
-  <p>Local folder of .txt / .md files. Add your documents to the <code>sample-data/</code> folder.</p>
+  <p>Local folder of .txt / .md files. The included <code>docs/</code> folder has 4 example documents — drop your own .txt / .md files in there too.</p>
 
   <h2>Steps</h2>
   <ol>
-    <li>Add your .txt or .md files to <code>sample-data/</code></li>
-    <li>Open <code>server.py</code> and fill in each TODO</li>
-    <li>Run <code>pip install mcp</code> then <code>python server.py</code> to test locally</li>
-    <li>Paste the config from <code>claude_desktop_config.json</code> into Claude Desktop Settings > Developer</li>
-    <li>Restart Claude Desktop and ask: "Search my docs for X"</li>
+    <li>Run <code>pip install mcp</code></li>
+    <li>(Optional) Run <code>python test_tool.py</code> — you should see "All tests passed."</li>
+    <li>Edit the path in <code>claude_desktop_config.json</code> to point to your <code>server.py</code></li>
+    <li>Paste the <code>doc-search</code> block into Claude Desktop Settings &gt; Developer &gt; Edit Config, then save</li>
+    <li>Quit and reopen Claude Desktop</li>
+    <li>Ask Claude to find your refund policy (see the example below)</li>
   </ol>
 
-  <div class="todo">TODO: Once your server works, write a test question here that proves it works end-to-end.</div>
+  <div class="todo"><strong>Try this prompt:</strong> "Using my doc-search tools, find where our docs talk about refunds, then read the relevant document and summarise our refund policy in two sentences."</div>
 </main>
 <footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
 </body>

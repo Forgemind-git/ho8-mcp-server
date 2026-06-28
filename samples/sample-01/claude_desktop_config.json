@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "TODO: server-name": {
+    "customer-lookup": {
       "command": "python",
-      "args": ["/TODO: full path to your server.py"],
+      "args": ["/Users/you/ho8-mcp-server/samples/sample-01/server.py"],
       "env": {}
     }
   }

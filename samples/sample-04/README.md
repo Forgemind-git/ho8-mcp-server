@@ -1,23 +1,30 @@
 # HO8 Sample 4 — Pricing Calculator MCP Server
 
-## Your task
-Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.
+## What you'll build
+This little server gives Claude two new tools — `get_quote` and `get_commission` — so it can do your pricing and commission math correctly every time. The actual numbers (your plans, prices, discounts, and commission rates) live inside the server, not in Claude's head, so the answers are always consistent and you can update them in one place. It works the moment you connect it — there's nothing to fill in.
 
-## What you will build
-An MCP server that exposes tools to Claude Desktop (no API key — uses your Claude.ai subscription via Claude Desktop)
+## Use it with your Claude.ai subscription
+No API key needed — uses your Claude.ai subscription via Claude Desktop.
 
-## Tools to implement
-- `get_quote(seats, plan, term_months) -> {monthly, annual, discount}`
-- `get_commission(deal_value, tier) -> {amount, pct}`
+1. Download Claude Desktop from [claude.ai/download](https://claude.ai/download) and sign in with your Claude.ai account.
+2. Install the MCP library: `pip install mcp`
+3. (Optional) Make sure everything works: `python test_tool.py` — you should see "All tests passed."
+4. Open `claude_desktop_config.json` and change the path in `args` so it points to **your** copy of `server.py` (the full path on your computer).
+5. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `pricing-calculator` block from `claude_desktop_config.json`, and save.
+6. Quit Claude Desktop completely and reopen it.
+7. Try the example prompt below.
 
-## Data source
-Hardcoded pricing table in Python
+## The example prompt
+```
+Using my pricing tools, quote 10 seats on the pro plan billed annually
+(12 months), and then tell me the senior-tier commission on that annual
+deal value.
+```
 
-## Setup
-1. pip install mcp
-2. Fill in the TODO sections in server.py
-3. Add your claude_desktop_config.json snippet to Claude Desktop Settings -> Developer
-4. Test by asking Claude: "TODO: write a test question"
+## Make it your own
+- Edit the `PRICING` dict in `server.py` to use your real plan names, prices, and annual discounts.
+- Add a volume discount — e.g. a few percent off when `seats` is above 50.
+- Add or rename tiers in `COMMISSION_TIERS` to match how your team is paid.
 
-## Required
-Claude Desktop (free download at claude.ai/download) + your Claude.ai subscription
+## Optional — automate it with the API (advanced)
+You don't need this for the course. If you later want a standalone script that calls Claude on its own (without Claude Desktop open), that uses the Anthropic API and needs a paid API key, which is separate from your Claude.ai subscription.

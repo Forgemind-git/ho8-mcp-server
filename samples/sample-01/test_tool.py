@@ -1,7 +1,8 @@
 """
-test_tool.py — Manual test scaffold for your MCP tools (no Claude required)
+test_tool.py — Run the tools directly, no Claude required.
 Run: python test_tool.py
-TODO: Add your own test cases after implementing server.py
+
+This proves the server works before you connect it to Claude Desktop.
 """
 
 import sys
@@ -15,19 +16,25 @@ from server import lookup_customer, list_customers
 def run_tests():
     print("=== Customer Lookup MCP Server — Tool Tests ===\n")
 
-    # TODO: Test 1 — lookup a customer by ID
-    # result = lookup_customer("TODO: a real customer ID from your data")
-    # print(result)
-    # assert "TODO: expected name" in str(result)
-    # print("PASS\n")
+    # Test 1 — look up a customer by ID
+    result = lookup_customer("C001")
+    print("lookup_customer('C001') ->", result)
+    assert result["name"] == "Alice Johnson"
+    print("PASS\n")
 
-    # TODO: Test 2 — list all customers
-    # result = list_customers()
-    # print(result)
-    # assert len(result) > 0
-    # print("PASS\n")
+    # Test 2 — look up a customer by partial name
+    result = lookup_customer("carol")
+    print("lookup_customer('carol') ->", result)
+    assert result["id"] == "C003"
+    print("PASS\n")
 
-    print("TODO: Add your test cases above, then run this file to verify your implementation.")
+    # Test 3 — list all customers
+    result = list_customers()
+    print(f"list_customers() -> {len(result)} customers")
+    assert len(result) == 8
+    print("PASS\n")
+
+    print("All tests passed. Your server is ready to connect to Claude Desktop.")
 
 
 if __name__ == "__main__":

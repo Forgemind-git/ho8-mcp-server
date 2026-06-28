@@ -31,31 +31,31 @@
   <p>Build an MCP server that lets Claude look up customer records by ID or name.</p>
 </header>
 <div class="starter-bar">
-  <strong>Starter branch.</strong> The files below are skeletons — open server.py and fill in the TODOs using Claude.ai.
+  <strong>Starter branch — copy &amp; use.</strong> This server already works with the included sample data. Run it, connect it to Claude Desktop, then swap in your own data. No API key needed — it uses your Claude.ai subscription.
 </div>
 <main>
   <h2>Problem</h2>
   <p>Your team keeps customer data in a sheet or database and re-answers the same lookups all day. Build an MCP server that exposes a customer_lookup tool to Claude Desktop.</p>
 
-  <h2>Tools to implement</h2>
+  <h2>Tools it gives Claude</h2>
   <ul>
     <li><code>lookup_customer(id_or_name)</code> — returns name, email, plan, status</li>
     <li><code>list_customers()</code> — returns a list of {id, name, plan}</li>
   </ul>
 
   <h2>Data source</h2>
-  <p>CSV file or SQLite. Add your sample data in the <code>sample-data/</code> folder.</p>
+  <p>Reads <code>sample-data/customers.csv</code> (8 example customers included). Replace the rows with your own to make it yours.</p>
 
   <h2>Steps</h2>
   <ol style="padding-left:20px;font-size:14px;color:#374151;">
-    <li>Add your customer data to <code>sample-data/</code></li>
-    <li>Open <code>server.py</code> and fill in each TODO</li>
-    <li>Run <code>pip install mcp</code> then <code>python server.py</code> to test locally</li>
-    <li>Paste the config from <code>claude_desktop_config.json</code> into Claude Desktop Settings > Developer</li>
-    <li>Restart Claude Desktop and ask: "List all my customers"</li>
+    <li>Run <code>pip install mcp</code></li>
+    <li>(Optional) Run <code>python test_tool.py</code> — you should see "All tests passed"</li>
+    <li>Edit <code>claude_desktop_config.json</code> so the path points to <code>server.py</code> on your computer</li>
+    <li>Paste that config into Claude Desktop Settings &gt; Developer, then quit and reopen Claude Desktop</li>
+    <li>Ask Claude: "List all my customers"</li>
   </ol>
 
-  <div class="todo">TODO: Once your server works, write a test question here that proves it works end-to-end.</div>
+  <div class="todo">Try this prompt in Claude Desktop: <em>"List all my customers, then tell me which ones are not 'active' and what plan they're on."</em></div>
 </main>
 <footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
 </body>

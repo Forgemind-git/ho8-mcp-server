@@ -1,6 +1,8 @@
 # Sample Data
 
-TODO: Add your sample data here (SQLite local file).
+There's nothing for you to add here by hand.
 
-The server.py will create tasks.db automatically when you first run it.
-You can pre-populate it with test tasks, or just start adding tasks via Claude.
+The first time you run `server.py`, it automatically creates a local SQLite
+file called `tasks.db` right next to it, and pre-loads it with 3 example
+tasks so your list isn't empty. From then on, you manage everything —
+adding, listing, and completing tasks — by simply asking Claude.

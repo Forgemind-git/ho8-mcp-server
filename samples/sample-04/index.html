@@ -31,13 +31,13 @@
   <p>Build an MCP server that lets Claude calculate quotes and commissions from your pricing table.</p>
 </header>
 <div class="starter-bar">
-  <strong>Starter branch.</strong> The files below are skeletons — open server.py and fill in the TODOs using Claude.ai.
+  <strong>Starter branch — copy &amp; use.</strong> This server already works as-is. No API key needed — it runs on your Claude.ai subscription through Claude Desktop. Just connect it and ask for a quote.
 </div>
 <main>
   <h2>Problem</h2>
   <p>Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.</p>
 
-  <h2>Tools to implement</h2>
+  <h2>Tools it gives Claude</h2>
   <ul>
     <li><code>get_quote(seats, plan, term_months)</code> — returns {monthly, annual, discount}</li>
     <li><code>get_commission(deal_value, tier)</code> — returns {amount, pct}</li>
@@ -48,14 +48,17 @@
 
   <h2>Steps</h2>
   <ol>
-    <li>Open <code>server.py</code> and define your pricing table in the PRICING / COMMISSION_TIERS dicts</li>
-    <li>Fill in each TODO function</li>
-    <li>Run <code>pip install mcp</code> then <code>python server.py</code> to test locally</li>
-    <li>Paste the config from <code>claude_desktop_config.json</code> into Claude Desktop Settings > Developer</li>
-    <li>Restart Claude Desktop and ask: "Get a quote for 10 pro seats for 12 months"</li>
+    <li>Run <code>pip install mcp</code></li>
+    <li>(Optional) Run <code>python test_tool.py</code> to confirm the tools work — you should see "All tests passed."</li>
+    <li>Edit the path in <code>claude_desktop_config.json</code> so it points to your copy of <code>server.py</code></li>
+    <li>Paste the <code>pricing-calculator</code> block into Claude Desktop &rarr; Settings &rarr; Developer &rarr; Edit Config, then save</li>
+    <li>Quit Claude Desktop and reopen it</li>
+    <li>Ask Claude for a quote (see the example prompt below)</li>
   </ol>
 
-  <div class="todo">TODO: Once your server works, write a test question here that proves it works end-to-end.</div>
+  <div class="starter-bar" style="margin:10px 0;">
+    <strong>Try this prompt:</strong> "Using my pricing tools, quote 10 seats on the pro plan billed annually (12 months), and tell me the senior-tier commission on that annual deal value."
+  </div>
 </main>
 <footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
 </body>

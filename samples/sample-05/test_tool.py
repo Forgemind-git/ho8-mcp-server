@@ -1,7 +1,6 @@
 """
-test_tool.py — Manual test scaffold for your MCP tools (no Claude required)
+test_tool.py — Manual test for your MCP tools (no Claude or API key required)
 Run: python test_tool.py
-TODO: Add your own test cases after implementing server.py
 """
 
 import sys
@@ -15,19 +14,22 @@ from server import search_docs, read_doc
 def run_tests():
     print("=== Doc Search MCP Server — Tool Tests ===\n")
 
-    # TODO: Test 1 — search for a term that exists in your docs
-    # result = search_docs("TODO: a word that appears in your sample docs")
-    # print(result)
-    # assert len(result) > 0
-    # print("PASS\n")
+    # Test 1 — search for "refund", which appears in docs/billing.md
+    print("Test 1: search_docs('refund')")
+    result = search_docs("refund")
+    for match in result:
+        print(f"  - {match['filename']}: {match['snippet']}")
+    assert len(result) > 0, "Expected at least one match for 'refund'"
+    print(f"  PASS — found {len(result)} match(es)\n")
 
-    # TODO: Test 2 — read a specific doc
-    # result = read_doc("TODO: a filename in your sample-data/ folder")
-    # print(result)
-    # assert "content" in result
-    # print("PASS\n")
+    # Test 2 — read a specific document and check we got its content
+    print("Test 2: read_doc('faq.txt')")
+    result = read_doc("faq.txt")
+    print(f"  keys returned: {list(result.keys())}")
+    assert "content" in result, "Expected a 'content' key in the result"
+    print(f"  PASS — read {len(result['content'])} characters from faq.txt\n")
 
-    print("TODO: Add your test cases above, then run this file to verify your implementation.")
+    print("All tests passed.")
 
 
 if __name__ == "__main__":

@@ -1,3 +1,21 @@
-TODO: Replace this with your own document.
+Acme Cloud — API Reference (sample)
 
-Add your own API reference, documentation, or knowledge base content here.
+This is a short, plain list of example endpoints. It is sample searchable
+text for the demo, not a real, working API.
+
+Base URL: https://api.acme.cloud/v1
+
+GET    /workspaces            List all workspaces you have access to.
+POST   /workspaces            Create a new workspace.
+GET    /workspaces/{id}       Get details for a single workspace.
+DELETE /workspaces/{id}       Delete a workspace and its data.
+
+GET    /datasources           List all connected data sources.
+POST   /datasources           Connect a new data source (CSV, Postgres, Sheets).
+GET    /datasources/{id}      Get details and sync status for one data source.
+
+GET    /members               List members of the current workspace.
+POST   /members/invite        Invite a teammate by email.
+
+Authentication: send an API key in the "Authorization: Bearer <key>" header.
+You can create an API key under Settings -> Developer.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample 01 — Customer Lookup MCP Server · HO8 · ForgeMind AI</title>
+<title>Sample 01 — HO7 Connection MCP Server · HO8 · ForgeMind AI</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -72,13 +72,13 @@
   <div class="wrap">
     <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
     <div class="eyebrow">HO8 · Sample 01</div>
-    <h1>Customer Lookup MCP Server</h1>
-    <p class="lede">Expose a <code>lookup_customer</code> tool that lets Claude query a local in-memory customer database by ID or email.</p>
+    <h1>HO7 Connection MCP Server</h1>
+    <p class="lede">Expose a <code>query_ho7</code> tool that lets Claude read data and answers straight from the solution you already built in HO7 — your two hands-on connected end-to-end.</p>
     <div class="pills">
       <span class="pill wk">Week 4</span>
       <span class="pill mod">M12 · MCP</span>
       <span class="pill fmt">Solo</span>
-      <span class="pill kind">Database</span>
+      <span class="pill kind">Capstone</span>
     </div>
 
     <div class="tip">
@@ -87,15 +87,16 @@
     </div>
 
     <div class="card">
-      <div class="section-h"><i data-lucide="database"></i> What this MCP server does</div>
-      <p>This server registers one tool called <code>lookup_customer</code>. When you ask Claude something like "what plan is alice@acmecorp.com on?", Claude calls the tool, which looks up the customer from a hard-coded in-memory dictionary and returns their name, plan tier, account creation date, and open ticket count.</p>
-      <p>The database lives entirely in <code>server.py</code> — no external database or API key is required.</p>
+      <div class="section-h"><i data-lucide="git-merge"></i> What this MCP server does</div>
+      <p>This server registers one tool called <code>query_ho7</code>. When you ask Claude something like "give me a summary of my HO7 project", Claude calls the tool, which reads from your HO7 solution and returns a real result — a summary, a record by id, or a keyword search over your project's data.</p>
+      <p>The sample ships with placeholder data in <code>server.py</code> standing in for your HO7 solution. <strong>Swap in a real query</strong> — read your HO7 database, call its API, or load its JSON/CSV export — and keep the tool signature the same so Claude calls it exactly as-is.</p>
 
       <div class="section-h"><i data-lucide="clipboard-check"></i> Requirements</div>
       <ul>
         <li>Python 3.10 or newer</li>
         <li>Claude Desktop — free download at <a href="https://claude.ai/download" target="_blank">claude.ai/download</a> (uses your Claude.ai subscription, no API key)</li>
         <li><code>mcp</code> Python package (installed below)</li>
+        <li>Your HO7 capstone project's data, database, or export</li>
       </ul>
 
       <div class="section-h"><i data-lucide="terminal"></i> Build the server</div>
@@ -116,14 +117,14 @@ pip install -r requirements.txt
 python server.py</pre>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <p>You should see: <code>Starting Customer Lookup MCP server...</code>. Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
+      <p>You should see: <code>Starting HO7 Connection MCP server...</code>. Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
 
       <div class="section-h"><i data-lucide="plug"></i> Connect to Claude Desktop</div>
       <p>Open Claude Desktop → <strong>Settings → Developer → Edit Config</strong> and paste the following into <code>claude_desktop_config.json</code>. Replace the path with the absolute path to <code>server.py</code> on your machine.</p>
       <div class="code-block">
         <pre>{
   "mcpServers": {
-    "customer-lookup": {
+    "ho7-connection": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-01/server.py"],
       "env": {}
@@ -142,11 +143,11 @@ python server.py</pre>
 
       <div class="section-h"><i data-lucide="play"></i> Test it</div>
       <p>After restarting Claude Desktop, type any of these prompts in a new conversation:</p>
-      <div class="test-prompt">"Look up customer C001"</div>
-      <div class="test-prompt">"What plan is alice@acmecorp.com on?"</div>
-      <div class="test-prompt">"How many open tickets does Carol White have?"</div>
-      <div class="test-prompt">"List all enterprise customers"</div>
-      <p>You should see Claude call the <code>lookup_customer</code> tool (visible as a tool-use block) and return customer details. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
+      <div class="test-prompt">"Give me a summary of my HO7 project"</div>
+      <div class="test-prompt">"What's the status of P002?"</div>
+      <div class="test-prompt">"Search my HO7 solution for anything about leads"</div>
+      <div class="test-prompt">"What's still to do in my HO7 project?"</div>
+      <p>You should see Claude call the <code>query_ho7</code> tool (visible as a tool-use block) and return a real result from your HO7 solution. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
     </div>
 
     <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>

@@ -1,59 +1,59 @@
 """
-test_tool.py — Unit test for get_repo_stats (no Claude required)
+test_tool.py — Unit test for lookup_customer (no Claude required)
 Run: python test_tool.py
-
-Note: Makes real HTTP calls to the GitHub public API.
-Rate limit: 60 requests/hour without a token.
 """
 
 import sys
 import os
-import json
 
+# Allow running from any directory
 sys.path.insert(0, os.path.dirname(__file__))
-from server import get_repo_stats
 
+from server import lookup_customer
 
 def run_tests():
-    print("=== GitHub Stats MCP Server — Tool Tests ===\n")
-    print("Note: these tests call the real GitHub API.\n")
+    print("=== Customer Lookup MCP Server — Tool Tests ===\n")
 
-    # Test 1: Well-known public repo
-    print("Test 1: anthropics/anthropic-sdk-python")
-    result = get_repo_stats("anthropics/anthropic-sdk-python")
+    # Test 1: Lookup by ID
+    print("Test 1: Lookup by ID (C001)")
+    result = lookup_customer("C001")
     print(result)
-    data = json.loads(result)
-    assert data["repo"] == "anthropics/anthropic-sdk-python"
-    assert isinstance(data["stars"], int) and data["stars"] >= 0
-    assert isinstance(data["open_issues"], int)
-    assert data["last_commit_date"] != "unknown"
-    assert "language" in data
+    assert "Alice Johnson" in result, "Expected Alice Johnson"
+    assert "pro" in result, "Expected plan=pro"
     print("PASS\n")
 
-    # Test 2: Another well-known repo
-    print("Test 2: python/cpython")
-    result = get_repo_stats("python/cpython")
+    # Test 2: Lookup by email
+    print("Test 2: Lookup by email (bob@startup.io)")
+    result = lookup_customer("bob@startup.io")
     print(result)
-    data = json.loads(result)
-    assert data["language"] == "Python"
+    assert "Bob Smith" in result, "Expected Bob Smith"
+    assert "starter" in result, "Expected plan=starter"
     print("PASS\n")
 
-    # Test 3: Invalid format
-    print("Test 3: Invalid format (no slash)")
-    result = get_repo_stats("notarepo")
+    # Test 3: Enterprise customer with open tickets
+    print("Test 3: Lookup enterprise customer (C003)")
+    result = lookup_customer("C003")
     print(result)
-    assert "Invalid repo format" in result
+    assert "Carol White" in result
+    assert "enterprise" in result
+    assert '"open_tickets": 5' in result
     print("PASS\n")
 
-    # Test 4: Non-existent repo
-    print("Test 4: Non-existent repo")
-    result = get_repo_stats("definitelydoesnotexist99999/fakerepo12345")
+    # Test 4: Not found by ID
+    print("Test 4: Not found by ID (C999)")
+    result = lookup_customer("C999")
     print(result)
-    assert "not found" in result.lower() or "error" in result.lower()
+    assert "No customer found" in result
+    print("PASS\n")
+
+    # Test 5: Not found by email
+    print("Test 5: Not found by email (unknown@nowhere.com)")
+    result = lookup_customer("unknown@nowhere.com")
+    print(result)
+    assert "No customer found" in result
     print("PASS\n")
 
     print("All tests passed!")
-
 
 if __name__ == "__main__":
     run_tests()

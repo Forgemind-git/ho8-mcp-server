@@ -1,59 +1,71 @@
 """
-Customer Lookup MCP Server
---------------------------
-Exposes one tool: lookup_customer
-Look up a customer by email or ID from a local JSON database.
+HO7 Connection MCP Server
+-------------------------
+Exposes one tool: query_ho7
+
+Connect the solution you already built in HO7 (your mid-course capstone) to Claude.
+This server exposes your HO7 project's data as a real, queryable tool so Claude can
+answer questions or take actions straight from it — no guessing.
+
+HOW TO MAKE IT YOURS
+--------------------
+The HO7_DATA dictionary below is placeholder data standing in for your HO7 solution.
+Replace it with a real query into your own HO7 project:
+  - reading rows from your HO7 database (sqlite3, psycopg2, ...)
+  - calling your HO7 project's API or reading its JSON/CSV export
+  - triggering an action your HO7 app exposes
+Keep the tool signature the same and Claude will call it exactly as-is.
 """
 
 import json
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("customer-lookup")
+mcp = FastMCP("ho7-connection")
 
-CUSTOMERS = {
-    "C001": {"customer_id": "C001", "name": "Alice Johnson", "email": "alice@acmecorp.com", "plan": "pro", "created_at": "2023-04-12", "open_tickets": 2},
-    "C002": {"customer_id": "C002", "name": "Bob Smith", "email": "bob@startup.io", "plan": "starter", "created_at": "2024-01-08", "open_tickets": 0},
-    "C003": {"customer_id": "C003", "name": "Carol White", "email": "carol@enterprise.com", "plan": "enterprise", "created_at": "2022-11-30", "open_tickets": 5},
-    "C004": {"customer_id": "C004", "name": "David Lee", "email": "david@freelancer.dev", "plan": "starter", "created_at": "2024-06-01", "open_tickets": 1},
-    "C005": {"customer_id": "C005", "name": "Eve Martinez", "email": "eve@bigco.net", "plan": "enterprise", "created_at": "2021-08-19", "open_tickets": 0},
+# --- Placeholder for YOUR HO7 solution's data. Replace with a real query. ---
+HO7_DATA = {
+    "items": [
+        {"id": "P001", "title": "Weekly report generator", "status": "done", "owner": "you", "notes": "Built in HO7 — produces the Monday summary."},
+        {"id": "P002", "title": "Lead follow-up drafts", "status": "in_progress", "owner": "you", "notes": "HO7 capstone module that drafts replies."},
+        {"id": "P003", "title": "Invoice reconciliation", "status": "todo", "owner": "you", "notes": "Planned extension of the HO7 project."},
+    ],
+    "summary": {"total": 3, "done": 1, "in_progress": 1, "todo": 1},
 }
-
-EMAIL_INDEX = {v["email"]: k for k, v in CUSTOMERS.items()}
 
 
 @mcp.tool()
-def lookup_customer(customer_id: str) -> str:
+def query_ho7(query: str) -> str:
     """
-    Look up a customer by email or ID from a local JSON database.
+    Query the solution you built in HO7 (your mid-course capstone).
 
     Args:
-        customer_id: The customer ID (e.g. C001) or email address to look up.
+        query: What to look up. Use "summary" for an overview, an id like "P001",
+               or any keyword to search titles and notes in your HO7 project.
 
     Returns:
-        Customer name, plan, created_at, and open_tickets count.
+        A JSON result pulled live from your HO7 solution (not a guess).
     """
-    query = customer_id.strip()
+    q = query.strip().lower()
 
-    if "@" in query:
-        resolved_id = EMAIL_INDEX.get(query.lower())
-        if not resolved_id:
-            return f"No customer found with email '{query}'."
-        query = resolved_id
+    if q in ("summary", "overview", "status", "all"):
+        return json.dumps(HO7_DATA["summary"], indent=2)
 
-    customer = CUSTOMERS.get(query.upper())
-    if not customer:
-        return f"No customer found with ID '{query}'."
+    # Match by id
+    for item in HO7_DATA["items"]:
+        if item["id"].lower() == q:
+            return json.dumps(item, indent=2)
 
-    return json.dumps({
-        "customer_id": customer["customer_id"],
-        "name": customer["name"],
-        "email": customer["email"],
-        "plan": customer["plan"],
-        "created_at": customer["created_at"],
-        "open_tickets": customer["open_tickets"],
-    }, indent=2)
+    # Keyword search over titles and notes
+    hits = [
+        item for item in HO7_DATA["items"]
+        if q in item["title"].lower() or q in item["notes"].lower()
+    ]
+    if hits:
+        return json.dumps(hits, indent=2)
+
+    return f"Nothing in your HO7 solution matched '{query}'. Try 'summary' or an id like P001."
 
 
 if __name__ == "__main__":
-    print("Starting Customer Lookup MCP server...")
+    print("Starting HO7 Connection MCP server...")
     mcp.run()

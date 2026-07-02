@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "doc-search": {
+    "pricing-calculator": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-05/server.py"],
       "env": {}

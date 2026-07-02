@@ -1,10 +1,10 @@
-# Sample 01 — Customer Lookup MCP Server
+# Sample 01 — HO7 Connection MCP Server
 
-**Problem:** Support agents waste time copy-pasting between tools. Give Claude direct access to your customer database so it can answer "Who is alice@acmecorp.com and do they have open tickets?" in one step.
+**Problem:** You already built a solution in HO7 (your mid-course capstone). Now let Claude act on it live. This server exposes your HO7 project's data or actions as a real MCP tool, so Claude can answer questions or take actions straight from it — your two hands-on connected end-to-end.
 
-**Tool exposed:** `lookup_customer`
+**Tool exposed:** `query_ho7`
 
-> Look up a customer by email or ID from a local JSON database.
+> Query the solution you built in HO7 (your mid-course capstone).
 
 ## Use it with your Claude.ai subscription
 No API key needed — uses your Claude.ai subscription via Claude Desktop.
@@ -12,22 +12,21 @@ No API key needed — uses your Claude.ai subscription via Claude Desktop.
 1. Download **Claude Desktop** (free) from **claude.ai/download** and sign in with your normal Claude.ai account.
 2. Open a terminal in this folder and run `pip install mcp`.
 3. Open **`claude_desktop_config.json`** here and set the path in `args` to the full path of `server.py` on your computer.
-4. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `customer-lookup` block, and save.
+4. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `ho7-connection` block, and save.
 5. **Quit and reopen Claude Desktop.**
-6. Ask Claude: *"Look up customer C001 and tell me their plan and how many open tickets they have."*
+6. Ask Claude: *"Use the HO7 tool to give me a summary of my project, then tell me what's still to do."*
 
 The detailed walkthrough is below.
 
-## What it returns
+## Make it yours
 
-| Field | Example |
-|---|---|
-| `customer_id` | `C001` |
-| `name` | `Alice Johnson` |
-| `email` | `alice@acmecorp.com` |
-| `plan` | `pro` |
-| `created_at` | `2023-04-12` |
-| `open_tickets` | `2` |
+The `HO7_DATA` dictionary in `server.py` is placeholder data standing in for your HO7 solution. Replace it with a **real** query into your own HO7 project:
+
+- read rows from your HO7 database (`sqlite3`, `psycopg2`, …)
+- call your HO7 project's API, or read its JSON/CSV export
+- trigger an action your HO7 app already exposes
+
+Keep the `query_ho7` signature the same and Claude will call it exactly as-is.
 
 ## Quick start
 
@@ -46,7 +45,7 @@ Add to your `claude_desktop_config.json` (see `claude_desktop_config.json` in th
 ```json
 {
   "mcpServers": {
-    "customer-lookup": {
+    "ho7-connection": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-01/server.py"]
     }
@@ -58,9 +57,9 @@ Replace `/ABSOLUTE/PATH/TO/` with the real path on your machine, then restart Cl
 
 ## Example prompts
 
-- "Look up customer C003"
-- "Is carol@enterprise.com on the enterprise plan?"
-- "How many open tickets does David Lee (C004) have?"
+- "Give me a summary of my HO7 project."
+- "What's the status of P002?"
+- "Search my HO7 solution for anything about leads."
 
 ## Test without Claude
 
@@ -68,10 +67,8 @@ Replace `/ABSOLUTE/PATH/TO/` with the real path on your machine, then restart Cl
 python test_tool.py
 ```
 
-Runs 5 assertions — lookup by ID, by email, open tickets count, and two not-found cases.
+Runs 4 assertions — summary, lookup by id, keyword search, and a no-match case.
 
-## Extending this sample
+## Success looks like
 
-- Replace `CUSTOMERS` dict with a real DB query (`psycopg2`, `sqlite3`, etc.)
-- Add more tools: `create_customer`, `update_plan`, `list_open_tickets`
-- Add an `EMAIL_DOMAIN_INDEX` to look up all customers at a company
+A clip of Claude calling `query_ho7` and returning a **real result from your HO7 solution**, not a guess — proving your MCP server (HO8) and your capstone (HO7) now work together end-to-end.

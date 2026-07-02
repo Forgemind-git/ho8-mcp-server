@@ -1,110 +1,114 @@
 """
-Document Search MCP Server
----------------------------
-Exposes one tool: search_docs
-Search a folder of .txt and .md files for matching passages.
+Pricing Calculator MCP Server
+------------------------------
+Exposes one tool: calculate_quote
+Calculate a product quote given plan, seats, and billing period.
 """
 
-import os
 import json
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("doc-search")
+mcp = FastMCP("pricing-calculator")
 
-# Default docs folder (relative to this file)
-DEFAULT_DOCS_FOLDER = os.path.join(os.path.dirname(__file__), "docs")
-
-CONTEXT_LINES = 3   # lines of context to show around a match
-MAX_RESULTS = 10    # cap results so responses stay readable
-
-
-def _search_file(filepath: str, query: str) -> list[dict]:
-    """Return all matching excerpts from a single file."""
-    try:
-        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
-            lines = f.readlines()
-    except OSError:
-        return []
-
-    lower_query = query.lower()
-    matches = []
-    seen_lines = set()
-
-    for i, line in enumerate(lines):
-        if lower_query in line.lower():
-            if i in seen_lines:
-                continue
-            # Extract a context window around the match
-            start = max(0, i - CONTEXT_LINES)
-            end = min(len(lines), i + CONTEXT_LINES + 1)
-            for ln in range(start, end):
-                seen_lines.add(ln)
-
-            excerpt = "".join(lines[start:end]).strip()
-            matches.append({
-                "line": i + 1,
-                "excerpt": excerpt,
-            })
-
-    return matches
+# ---------------------------------------------------------------------------
+# Pricing configuration
+# ---------------------------------------------------------------------------
+PLANS = {
+    "starter": {
+        "display_name": "Starter",
+        "monthly_price_per_seat": 12.00,
+        "annual_discount_pct": 0.0,   # no annual discount on starter
+        "max_seats": 5,
+    },
+    "pro": {
+        "display_name": "Pro",
+        "monthly_price_per_seat": 29.00,
+        "annual_discount_pct": 0.20,  # 20% off for annual billing
+        "max_seats": 50,
+    },
+    "enterprise": {
+        "display_name": "Enterprise",
+        "monthly_price_per_seat": 79.00,
+        "annual_discount_pct": 0.25,  # 25% off for annual billing
+        "max_seats": 10000,
+    },
+}
 
 
 @mcp.tool()
-def search_docs(query: str, folder: str = "") -> str:
+def calculate_quote(plan: str, seats: int, billing: str) -> str:
     """
-    Search a folder of .txt and .md files for matching passages.
+    Calculate a product quote given plan, seats, and billing period.
 
     Args:
-        query: Search query string (case-insensitive substring match).
-        folder: Optional absolute or relative path to the docs folder.
-                Defaults to the ./docs folder next to server.py.
+        plan: Plan tier — 'starter', 'pro', or 'enterprise'.
+        seats: Number of seats (must be a positive integer).
+        billing: Billing period — 'monthly' or 'annual'.
 
     Returns:
-        JSON list of matching files with the relevant excerpt and line number.
+        unit_price, subtotal, discount, total, and savings_vs_monthly as JSON.
     """
-    if not query.strip():
-        return "Error: 'query' cannot be empty."
+    plan = plan.strip().lower()
+    billing = billing.strip().lower()
 
-    docs_folder = folder.strip() if folder.strip() else DEFAULT_DOCS_FOLDER
+    # Validate plan
+    if plan not in PLANS:
+        valid = ", ".join(PLANS.keys())
+        return f"Unknown plan '{plan}'. Valid plans: {valid}."
 
-    # Resolve relative paths relative to this file
-    if not os.path.isabs(docs_folder):
-        docs_folder = os.path.join(os.path.dirname(__file__), docs_folder)
+    # Validate billing
+    if billing not in ("monthly", "annual"):
+        return f"Unknown billing period '{billing}'. Use 'monthly' or 'annual'."
 
-    if not os.path.isdir(docs_folder):
-        return f"Folder not found: '{docs_folder}'. Create it and add .txt or .md files."
+    # Validate seats
+    if not isinstance(seats, int) or seats < 1:
+        return "seats must be a positive integer (e.g. 5)."
 
-    results = []
-    for root, _dirs, files in os.walk(docs_folder):
-        for filename in sorted(files):
-            if not (filename.endswith(".txt") or filename.endswith(".md")):
-                continue
-            filepath = os.path.join(root, filename)
-            file_matches = _search_file(filepath, query)
-            for match in file_matches:
-                rel_path = os.path.relpath(filepath, docs_folder)
-                results.append({
-                    "file": rel_path,
-                    "line": match["line"],
-                    "excerpt": match["excerpt"],
-                })
-                if len(results) >= MAX_RESULTS:
-                    break
-        if len(results) >= MAX_RESULTS:
-            break
+    plan_info = PLANS[plan]
+    max_seats = plan_info["max_seats"]
 
-    if not results:
-        return f"No results found for '{query}' in {docs_folder}."
+    if seats > max_seats:
+        return (
+            f"The {plan_info['display_name']} plan supports up to {max_seats} seats. "
+            f"For {seats} seats, please contact sales for an enterprise quote."
+        )
+
+    monthly_unit = plan_info["monthly_price_per_seat"]
+    discount_pct = plan_info["annual_discount_pct"] if billing == "annual" else 0.0
+
+    if billing == "monthly":
+        unit_price = monthly_unit
+        subtotal = unit_price * seats
+        discount_amount = 0.0
+        total = subtotal
+        savings_vs_monthly = 0.0
+    else:
+        # Annual: price per seat per MONTH (displayed as monthly-equivalent)
+        unit_price = round(monthly_unit * (1 - discount_pct), 2)
+        # Total billed annually = unit_price * seats * 12
+        subtotal = round(unit_price * seats * 12, 2)
+        monthly_total_if_monthly = monthly_unit * seats * 12
+        discount_amount = round(monthly_total_if_monthly - subtotal, 2)
+        total = subtotal
+        savings_vs_monthly = discount_amount
 
     return json.dumps({
-        "query": query,
-        "folder": docs_folder,
-        "result_count": len(results),
-        "results": results,
+        "plan": plan_info["display_name"],
+        "seats": seats,
+        "billing": billing,
+        "unit_price_per_seat_per_month": round(unit_price, 2),
+        "subtotal": round(subtotal, 2),
+        "discount_pct": int(discount_pct * 100),
+        "discount_amount": round(discount_amount, 2),
+        "total": round(total, 2),
+        "savings_vs_monthly": round(savings_vs_monthly, 2),
+        "billing_note": (
+            f"Billed as ${total:.2f}/year" if billing == "annual"
+            else f"Billed as ${total:.2f}/month"
+        ),
     }, indent=2)
 
 
 if __name__ == "__main__":
-    print("Starting Document Search MCP server...")
-    print(f"Default docs folder: {DEFAULT_DOCS_FOLDER}")
+    print("Starting Pricing Calculator MCP server...")
     mcp.run()

@@ -1,8 +1,6 @@
 """
-test_tool.py — Unit test for search_docs (no Claude required)
+test_tool.py — Unit test for calculate_quote (no Claude required)
 Run: python test_tool.py
-
-Uses the sample docs in ./docs/
 """
 
 import sys
@@ -10,67 +8,75 @@ import os
 import json
 
 sys.path.insert(0, os.path.dirname(__file__))
-from server import search_docs
-
-DOCS_FOLDER = os.path.join(os.path.dirname(__file__), "docs")
+from server import calculate_quote
 
 
 def run_tests():
-    print("=== Document Search MCP Server — Tool Tests ===\n")
+    print("=== Pricing Calculator MCP Server — Tool Tests ===\n")
 
-    # Test 1: Search for a term that exists
-    print("Test 1: Search for 'billing'")
-    result = search_docs("billing")
-    print(result[:500], "...\n")
-    data = json.loads(result)
-    assert data["result_count"] > 0
-    assert any("billing" in r["file"].lower() or "billing" in r["excerpt"].lower() for r in data["results"])
-    print("PASS\n")
-
-    # Test 2: Search in specific folder
-    print("Test 2: Search for 'authentication' in docs folder")
-    result = search_docs("authentication", DOCS_FOLDER)
-    print(result[:500], "...\n")
-    data = json.loads(result)
-    assert data["result_count"] > 0
-    print("PASS\n")
-
-    # Test 3: Case-insensitive match
-    print("Test 3: Case-insensitive search (WEBHOOK vs webhook)")
-    result = search_docs("WEBHOOK")
-    print(result[:500], "...\n")
-    data = json.loads(result)
-    assert data["result_count"] > 0
-    print("PASS\n")
-
-    # Test 4: No results
-    print("Test 4: Search for something that doesn't exist")
-    result = search_docs("xyzzy_no_match_9999")
+    # Test 1: Starter monthly — no discount
+    print("Test 1: Starter, 3 seats, monthly")
+    result = calculate_quote("starter", 3, "monthly")
     print(result)
-    assert "No results found" in result
-    print("PASS\n")
-
-    # Test 5: Empty query
-    print("Test 5: Empty query")
-    result = search_docs("")
-    print(result)
-    assert "Error" in result
-    print("PASS\n")
-
-    # Test 6: Non-existent folder
-    print("Test 6: Non-existent folder")
-    result = search_docs("anything", "/tmp/this_folder_definitely_does_not_exist_12345")
-    print(result)
-    assert "not found" in result.lower() or "Folder not found" in result
-    print("PASS\n")
-
-    # Test 7: Excerpt contains surrounding context
-    print("Test 7: Result excerpt contains multi-line context")
-    result = search_docs("rate limit")
     data = json.loads(result)
-    first_excerpt = data["results"][0]["excerpt"]
-    print(f"Excerpt: {first_excerpt[:200]}\n")
-    assert len(first_excerpt.splitlines()) > 1, "Expected multi-line context"
+    assert data["plan"] == "Starter"
+    assert data["unit_price_per_seat_per_month"] == 12.00
+    assert data["total"] == 36.00
+    assert data["discount_amount"] == 0.0
+    assert data["savings_vs_monthly"] == 0.0
+    print("PASS\n")
+
+    # Test 2: Pro annual — 20% discount
+    print("Test 2: Pro, 10 seats, annual")
+    result = calculate_quote("pro", 10, "annual")
+    print(result)
+    data = json.loads(result)
+    assert data["plan"] == "Pro"
+    assert data["discount_pct"] == 20
+    monthly_unit = 29.00
+    expected_unit = round(monthly_unit * 0.80, 2)
+    assert data["unit_price_per_seat_per_month"] == expected_unit
+    assert data["savings_vs_monthly"] > 0
+    print("PASS\n")
+
+    # Test 3: Enterprise annual — 25% discount
+    print("Test 3: Enterprise, 100 seats, annual")
+    result = calculate_quote("enterprise", 100, "annual")
+    print(result)
+    data = json.loads(result)
+    assert data["plan"] == "Enterprise"
+    assert data["discount_pct"] == 25
+    assert data["savings_vs_monthly"] > 0
+    print("PASS\n")
+
+    # Test 4: Invalid plan
+    print("Test 4: Invalid plan 'premium'")
+    result = calculate_quote("premium", 5, "monthly")
+    print(result)
+    assert "Unknown plan" in result
+    print("PASS\n")
+
+    # Test 5: Invalid billing
+    print("Test 5: Invalid billing 'quarterly'")
+    result = calculate_quote("pro", 5, "quarterly")
+    print(result)
+    assert "Unknown billing period" in result
+    print("PASS\n")
+
+    # Test 6: Seats exceed starter max (5)
+    print("Test 6: Starter with 10 seats (exceeds max of 5)")
+    result = calculate_quote("starter", 10, "monthly")
+    print(result)
+    assert "5 seats" in result or "contact sales" in result.lower()
+    print("PASS\n")
+
+    # Test 7: Case-insensitive plan and billing
+    print("Test 7: Case-insensitive inputs (PRO / ANNUAL)")
+    result = calculate_quote("PRO", 5, "ANNUAL")
+    print(result)
+    data = json.loads(result)
+    assert data["plan"] == "Pro"
+    assert data["billing"] == "annual"
     print("PASS\n")
 
     print("All tests passed!")

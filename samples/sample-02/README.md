@@ -1,20 +1,20 @@
-# Sample 02 — GitHub Stats MCP Server
+# Sample 02 — Customer Lookup MCP Server
 
-**Problem:** You want to ask Claude "Which of these repos is most active?" or "How popular is this library?" without leaving the conversation to open a browser.
+**Problem:** Support agents waste time copy-pasting between tools. Give Claude direct access to your customer database so it can answer "Who is alice@acmecorp.com and do they have open tickets?" in one step.
 
-**Tool exposed:** `get_repo_stats`
+**Tool exposed:** `lookup_customer`
 
-> Get star count, open issue count, and last commit date for any public GitHub repo.
+> Look up a customer by email or ID from a local JSON database.
 
 ## Use it with your Claude.ai subscription
-No API key needed — uses your Claude.ai subscription via Claude Desktop. (The GitHub public API it calls also needs no key.)
+No API key needed — uses your Claude.ai subscription via Claude Desktop.
 
 1. Download **Claude Desktop** (free) from **claude.ai/download** and sign in with your normal Claude.ai account.
 2. Open a terminal in this folder and run `pip install mcp`.
 3. Open **`claude_desktop_config.json`** here and set the path in `args` to the full path of `server.py` on your computer.
-4. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `github-stats` block, and save.
+4. In Claude Desktop, go to **Settings → Developer → Edit Config**, paste in the `customer-lookup` block, and save.
 5. **Quit and reopen Claude Desktop.**
-6. Ask Claude: *"Get the GitHub stats for anthropics/anthropic-sdk-python — is it actively maintained?"*
+6. Ask Claude: *"Look up customer C001 and tell me their plan and how many open tickets they have."*
 
 The detailed walkthrough is below.
 
@@ -22,11 +22,12 @@ The detailed walkthrough is below.
 
 | Field | Example |
 |---|---|
-| `repo` | `anthropics/anthropic-sdk-python` |
-| `stars` | `4821` |
-| `open_issues` | `37` |
-| `last_commit_date` | `2024-06-15` |
-| `language` | `Python` |
+| `customer_id` | `C001` |
+| `name` | `Alice Johnson` |
+| `email` | `alice@acmecorp.com` |
+| `plan` | `pro` |
+| `created_at` | `2023-04-12` |
+| `open_tickets` | `2` |
 
 ## Quick start
 
@@ -34,20 +35,18 @@ The detailed walkthrough is below.
 # 1. Install dependencies
 pip install mcp
 
-# 2. Run the server
+# 2. Run the server (stdio mode — used by Claude Desktop)
 python server.py
 ```
 
-No API key required — uses the GitHub public REST API (60 requests/hour unauthenticated).
-
 ## Connect to Claude Desktop
 
-Edit `claude_desktop_config.json` with your real path, then add it to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows).
+Add to your `claude_desktop_config.json` (see `claude_desktop_config.json` in this folder for the snippet):
 
 ```json
 {
   "mcpServers": {
-    "github-stats": {
+    "customer-lookup": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-02/server.py"]
     }
@@ -55,27 +54,13 @@ Edit `claude_desktop_config.json` with your real path, then add it to `~/Library
 }
 ```
 
-### Optional: raise the rate limit
-
-Add a `GITHUB_TOKEN` env var in `claude_desktop_config.json` to get 5,000 requests/hour instead of 60:
-
-```json
-"env": { "GITHUB_TOKEN": "ghp_yourtoken" }
-```
-
-Then update `server.py` to read it:
-```python
-import os
-token = os.environ.get("GITHUB_TOKEN")
-if token:
-    headers["Authorization"] = f"Bearer {token}"
-```
+Replace `/ABSOLUTE/PATH/TO/` with the real path on your machine, then restart Claude Desktop.
 
 ## Example prompts
 
-- "Get stats for anthropics/anthropic-sdk-python"
-- "How many stars does microsoft/vscode have?"
-- "When was the last commit to python/cpython?"
+- "Look up customer C003"
+- "Is carol@enterprise.com on the enterprise plan?"
+- "How many open tickets does David Lee (C004) have?"
 
 ## Test without Claude
 
@@ -83,10 +68,10 @@ if token:
 python test_tool.py
 ```
 
-Makes 4 real API calls — tests valid repos, field types, invalid format, and not-found handling.
+Runs 5 assertions — lookup by ID, by email, open tickets count, and two not-found cases.
 
 ## Extending this sample
 
-- Add `GITHUB_TOKEN` support for private repos and higher rate limits
-- Add a `list_contributors` tool
-- Add a `compare_repos` tool that calls `get_repo_stats` twice and returns the winner by stars
+- Replace `CUSTOMERS` dict with a real DB query (`psycopg2`, `sqlite3`, etc.)
+- Add more tools: `create_customer`, `update_plan`, `list_open_tickets`
+- Add an `EMAIL_DOMAIN_INDEX` to look up all customers at a company

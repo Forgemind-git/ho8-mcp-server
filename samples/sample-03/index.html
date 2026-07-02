@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample 03 — Task Manager MCP Server · HO8 · ForgeMind AI</title>
+<title>Sample 03 — GitHub Stats MCP Server · HO8 · ForgeMind AI</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -66,13 +66,13 @@
   <div class="wrap">
     <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
     <div class="eyebrow">HO8 · Sample 03</div>
-    <h1>Task Manager MCP Server</h1>
-    <p class="lede">Expose a <code>manage_tasks</code> tool that lets Claude list, add, and complete tasks stored in a local <code>tasks.json</code> file.</p>
+    <h1>GitHub Stats MCP Server</h1>
+    <p class="lede">Expose a <code>get_repo_stats</code> tool that fetches live star count, open issues, and last commit date for any public GitHub repository.</p>
     <div class="pills">
       <span class="pill wk">Week 4</span>
       <span class="pill mod">M12 · MCP</span>
       <span class="pill fmt">Solo</span>
-      <span class="pill kind">Read + Write</span>
+      <span class="pill kind">Public API</span>
     </div>
 
     <div class="tip">
@@ -81,20 +81,16 @@
     </div>
 
     <div class="card">
-      <div class="section-h"><i data-lucide="list-checks"></i> What this MCP server does</div>
-      <p>This server provides a single MCP tool called <code>manage_tasks</code> with three actions:</p>
-      <ul>
-        <li><strong>list</strong> — show all tasks with their status (TODO / DONE)</li>
-        <li><strong>add</strong> — create a new task with a description</li>
-        <li><strong>complete</strong> — mark a task done by its ID number or a title substring</li>
-      </ul>
-      <p>Tasks are persisted to a <code>tasks.json</code> file in the same directory as <code>server.py</code>, so they survive across Claude Desktop restarts. No database or external service is needed.</p>
+      <div class="section-h"><i data-lucide="git-branch"></i> What this MCP server does</div>
+      <p>This server wraps the <strong>GitHub public API</strong> (no GitHub token required) in a single MCP tool called <code>get_repo_stats</code>. Pass any public repository in <code>owner/repo</code> format and the tool returns the star count, open issue count, primary language, and date of the most recent commit.</p>
+      <p>It uses only Python's built-in <code>urllib</code> — no extra HTTP library is needed beyond the <code>mcp</code> package itself.</p>
 
       <div class="section-h"><i data-lucide="clipboard-check"></i> Requirements</div>
       <ul>
         <li>Python 3.10 or newer</li>
         <li>Claude Desktop — free download at <a href="https://claude.ai/download" target="_blank">claude.ai/download</a> (uses your Claude.ai subscription, no API key)</li>
         <li><code>mcp</code> Python package (installed below)</li>
+        <li>Internet access to reach <code>api.github.com</code> (public, unauthenticated)</li>
       </ul>
 
       <div class="section-h"><i data-lucide="terminal"></i> Build the server</div>
@@ -115,20 +111,14 @@ pip install -r requirements.txt
 python server.py</pre>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <p>You should see output like:</p>
-      <div class="code-block">
-        <pre>Starting Task Manager MCP server...
-Tasks file: /path/to/samples/sample-03/tasks.json</pre>
-        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-      </div>
-      <p>Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
+      <p>You should see: <code>Starting GitHub Stats MCP server...</code>. Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
 
       <div class="section-h"><i data-lucide="plug"></i> Connect to Claude Desktop</div>
       <p>Open Claude Desktop → <strong>Settings → Developer → Edit Config</strong> and paste the following into <code>claude_desktop_config.json</code>. Replace the path with the absolute path to <code>server.py</code> on your machine.</p>
       <div class="code-block">
         <pre>{
   "mcpServers": {
-    "task-manager": {
+    "github-stats": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-03/server.py"],
       "env": {}
@@ -147,11 +137,11 @@ Tasks file: /path/to/samples/sample-03/tasks.json</pre>
 
       <div class="section-h"><i data-lucide="play"></i> Test it</div>
       <p>After restarting Claude Desktop, type any of these prompts in a new conversation:</p>
-      <div class="test-prompt">"Add a task: review pull requests"</div>
-      <div class="test-prompt">"What tasks do I have?"</div>
-      <div class="test-prompt">"Mark the 'review pull requests' task as done"</div>
-      <div class="test-prompt">"Add three tasks: write tests, update docs, and deploy to staging"</div>
-      <p>You should see Claude call the <code>manage_tasks</code> tool (visible as a tool-use block) and confirm each action. Check the <code>tasks.json</code> file in <code>samples/sample-03/</code> to see tasks being persisted. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
+      <div class="test-prompt">"How many stars does anthropics/anthropic-sdk-python have?"</div>
+      <div class="test-prompt">"Get the GitHub stats for microsoft/vscode"</div>
+      <div class="test-prompt">"When was the last commit on facebook/react?"</div>
+      <div class="test-prompt">"Compare star counts for vuejs/vue and sveltejs/svelte"</div>
+      <p>You should see Claude call the <code>get_repo_stats</code> tool (visible as a tool-use block) and return live data from GitHub. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
     </div>
 
     <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>

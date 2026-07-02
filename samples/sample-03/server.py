@@ -1,116 +1,92 @@
 """
-Task Manager MCP Server
+GitHub Stats MCP Server
 -----------------------
-Exposes one tool: manage_tasks
-Read and write tasks from a local tasks.json file.
-Supports actions: list | add | complete
+Exposes one tool: get_repo_stats
+Get star count, open issue count, and last commit date for any public GitHub repo.
 """
 
 import json
-import os
+import urllib.request
+import urllib.error
 from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("task-manager")
-
-# tasks.json lives next to this file
-TASKS_FILE = os.path.join(os.path.dirname(__file__), "tasks.json")
-
-
-def _load_tasks() -> list:
-    """Load tasks from disk, returning empty list if file doesn't exist."""
-    if not os.path.exists(TASKS_FILE):
-        return []
-    try:
-        with open(TASKS_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            return data if isinstance(data, list) else []
-    except (json.JSONDecodeError, OSError):
-        return []
-
-
-def _save_tasks(tasks: list) -> None:
-    """Persist tasks to disk."""
-    with open(TASKS_FILE, "w", encoding="utf-8") as f:
-        json.dump(tasks, f, indent=2)
+mcp = FastMCP("github-stats")
 
 
 @mcp.tool()
-def manage_tasks(action: str, task: str = "") -> str:
+def get_repo_stats(repo: str) -> str:
     """
-    Read and write tasks from a local tasks.json file.
+    Get star count, open issue count, and last commit date for any public GitHub repo.
 
     Args:
-        action: One of 'list', 'add', or 'complete'.
-        task: Task description (required for 'add') or task ID/name (for 'complete').
+        repo: Repository in owner/repo format, e.g. 'anthropics/anthropic-sdk-python'.
 
     Returns:
-        Task list or confirmation of action taken.
+        stars, open_issues, last_commit_date, and language as JSON.
     """
-    action = action.strip().lower()
+    repo = repo.strip().strip("/")
 
-    if action == "list":
-        tasks = _load_tasks()
-        if not tasks:
-            return "No tasks yet. Use action='add' with a task description to create one."
+    if repo.count("/") != 1:
+        return f"Invalid repo format '{repo}'. Use owner/repo, e.g. 'anthropics/anthropic-sdk-python'."
 
-        lines = []
-        for t in tasks:
-            status = "DONE" if t.get("completed") else "TODO"
-            lines.append(f"[{t['id']}] [{status}] {t['title']} (added {t['created_at']})")
-        return "\n".join(lines)
+    owner, name = repo.split("/", 1)
 
-    elif action == "add":
-        if not task.strip():
-            return "Error: 'task' description is required for action='add'."
+    # ---- Fetch repo metadata from GitHub public API (no auth needed) ----
+    repo_url = f"https://api.github.com/repos/{owner}/{name}"
+    commits_url = f"https://api.github.com/repos/{owner}/{name}/commits?per_page=1"
 
-        tasks = _load_tasks()
-        new_id = max((t["id"] for t in tasks), default=0) + 1
-        new_task = {
-            "id": new_id,
-            "title": task.strip(),
-            "completed": False,
-            "created_at": datetime.now().strftime("%Y-%m-%d"),
-            "completed_at": None,
-        }
-        tasks.append(new_task)
-        _save_tasks(tasks)
-        return f"Task added: [{new_id}] {new_task['title']}"
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "mcp-github-stats/1.0",
+    }
 
-    elif action == "complete":
-        if not task.strip():
-            return "Error: provide a task ID or title fragment for action='complete'."
+    try:
+        # Fetch repo info
+        req = urllib.request.Request(repo_url, headers=headers)
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            repo_data = json.loads(resp.read().decode())
 
-        tasks = _load_tasks()
-        query = task.strip()
+        stars = repo_data.get("stargazers_count", 0)
+        open_issues = repo_data.get("open_issues_count", 0)
+        language = repo_data.get("language") or "unknown"
 
-        # Try matching by numeric ID first, then by title substring
-        matched = None
-        if query.isdigit():
-            task_id = int(query)
-            matched = next((t for t in tasks if t["id"] == task_id), None)
+        # Fetch last commit date
+        req2 = urllib.request.Request(commits_url, headers=headers)
+        with urllib.request.urlopen(req2, timeout=10) as resp2:
+            commits = json.loads(resp2.read().decode())
+
+        last_commit_date = "unknown"
+        if commits:
+            raw_date = commits[0]["commit"]["committer"]["date"]
+            # Parse ISO 8601 and reformat nicely
+            try:
+                dt = datetime.strptime(raw_date, "%Y-%m-%dT%H:%M:%SZ")
+                last_commit_date = dt.strftime("%Y-%m-%d")
+            except ValueError:
+                last_commit_date = raw_date[:10]
+
+        return json.dumps({
+            "repo": f"{owner}/{name}",
+            "stars": stars,
+            "open_issues": open_issues,
+            "last_commit_date": last_commit_date,
+            "language": language,
+        }, indent=2)
+
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return f"Repository '{repo}' not found. Check that it's public and the name is correct."
+        elif e.code == 403:
+            return "GitHub API rate limit exceeded. Wait a minute and try again (or add a GitHub token)."
         else:
-            lower_query = query.lower()
-            matched = next(
-                (t for t in tasks if lower_query in t["title"].lower()), None
-            )
-
-        if not matched:
-            return f"No task found matching '{query}'. Use action='list' to see all tasks."
-
-        if matched["completed"]:
-            return f"Task [{matched['id']}] '{matched['title']}' is already completed."
-
-        matched["completed"] = True
-        matched["completed_at"] = datetime.now().strftime("%Y-%m-%d")
-        _save_tasks(tasks)
-        return f"Task completed: [{matched['id']}] {matched['title']}"
-
-    else:
-        return f"Unknown action '{action}'. Valid actions: list, add, complete."
+            return f"GitHub API error: HTTP {e.code} — {e.reason}"
+    except urllib.error.URLError as e:
+        return f"Network error reaching GitHub API: {e.reason}"
+    except Exception as e:
+        return f"Unexpected error: {e}"
 
 
 if __name__ == "__main__":
-    print("Starting Task Manager MCP server...")
-    print(f"Tasks file: {TASKS_FILE}")
+    print("Starting GitHub Stats MCP server...")
     mcp.run()

@@ -1,85 +1,121 @@
 """
-test_tool.py — Unit test for calculate_quote (no Claude required)
+test_tool.py — Unit test for manage_tasks (no Claude required)
 Run: python test_tool.py
+
+Note: Creates and modifies tasks.json in the same folder.
+A backup is taken before tests and restored afterwards.
 """
 
 import sys
 import os
 import json
+import shutil
 
 sys.path.insert(0, os.path.dirname(__file__))
-from server import calculate_quote
+
+TASKS_FILE = os.path.join(os.path.dirname(__file__), "tasks.json")
+BACKUP_FILE = TASKS_FILE + ".bak"
+
+
+def setup():
+    """Back up existing tasks.json and start clean."""
+    if os.path.exists(TASKS_FILE):
+        shutil.copy(TASKS_FILE, BACKUP_FILE)
+        os.remove(TASKS_FILE)
+
+
+def teardown():
+    """Remove test tasks.json and restore backup."""
+    if os.path.exists(TASKS_FILE):
+        os.remove(TASKS_FILE)
+    if os.path.exists(BACKUP_FILE):
+        shutil.move(BACKUP_FILE, TASKS_FILE)
 
 
 def run_tests():
-    print("=== Pricing Calculator MCP Server — Tool Tests ===\n")
+    from server import manage_tasks
 
-    # Test 1: Starter monthly — no discount
-    print("Test 1: Starter, 3 seats, monthly")
-    result = calculate_quote("starter", 3, "monthly")
-    print(result)
-    data = json.loads(result)
-    assert data["plan"] == "Starter"
-    assert data["unit_price_per_seat_per_month"] == 12.00
-    assert data["total"] == 36.00
-    assert data["discount_amount"] == 0.0
-    assert data["savings_vs_monthly"] == 0.0
-    print("PASS\n")
+    print("=== Task Manager MCP Server — Tool Tests ===\n")
+    setup()
 
-    # Test 2: Pro annual — 20% discount
-    print("Test 2: Pro, 10 seats, annual")
-    result = calculate_quote("pro", 10, "annual")
-    print(result)
-    data = json.loads(result)
-    assert data["plan"] == "Pro"
-    assert data["discount_pct"] == 20
-    monthly_unit = 29.00
-    expected_unit = round(monthly_unit * 0.80, 2)
-    assert data["unit_price_per_seat_per_month"] == expected_unit
-    assert data["savings_vs_monthly"] > 0
-    print("PASS\n")
+    try:
+        # Test 1: List when empty
+        print("Test 1: List empty task list")
+        result = manage_tasks("list")
+        print(result)
+        assert "No tasks yet" in result
+        print("PASS\n")
 
-    # Test 3: Enterprise annual — 25% discount
-    print("Test 3: Enterprise, 100 seats, annual")
-    result = calculate_quote("enterprise", 100, "annual")
-    print(result)
-    data = json.loads(result)
-    assert data["plan"] == "Enterprise"
-    assert data["discount_pct"] == 25
-    assert data["savings_vs_monthly"] > 0
-    print("PASS\n")
+        # Test 2: Add a task
+        print("Test 2: Add 'Write the course README'")
+        result = manage_tasks("add", "Write the course README")
+        print(result)
+        assert "Task added" in result
+        assert "[1]" in result
+        print("PASS\n")
 
-    # Test 4: Invalid plan
-    print("Test 4: Invalid plan 'premium'")
-    result = calculate_quote("premium", 5, "monthly")
-    print(result)
-    assert "Unknown plan" in result
-    print("PASS\n")
+        # Test 3: Add another task
+        print("Test 3: Add 'Record intro video'")
+        result = manage_tasks("add", "Record intro video")
+        print(result)
+        assert "Task added" in result
+        assert "[2]" in result
+        print("PASS\n")
 
-    # Test 5: Invalid billing
-    print("Test 5: Invalid billing 'quarterly'")
-    result = calculate_quote("pro", 5, "quarterly")
-    print(result)
-    assert "Unknown billing period" in result
-    print("PASS\n")
+        # Test 4: List tasks
+        print("Test 4: List tasks")
+        result = manage_tasks("list")
+        print(result)
+        assert "Write the course README" in result
+        assert "Record intro video" in result
+        assert "TODO" in result
+        print("PASS\n")
 
-    # Test 6: Seats exceed starter max (5)
-    print("Test 6: Starter with 10 seats (exceeds max of 5)")
-    result = calculate_quote("starter", 10, "monthly")
-    print(result)
-    assert "5 seats" in result or "contact sales" in result.lower()
-    print("PASS\n")
+        # Test 5: Complete by ID
+        print("Test 5: Complete task 1 by ID")
+        result = manage_tasks("complete", "1")
+        print(result)
+        assert "Task completed" in result
+        print("PASS\n")
 
-    # Test 7: Case-insensitive plan and billing
-    print("Test 7: Case-insensitive inputs (PRO / ANNUAL)")
-    result = calculate_quote("PRO", 5, "ANNUAL")
-    print(result)
-    data = json.loads(result)
-    assert data["plan"] == "Pro"
-    assert data["billing"] == "annual"
-    print("PASS\n")
+        # Test 6: Complete by title fragment
+        print("Test 6: Complete 'intro video' by title fragment")
+        result = manage_tasks("complete", "intro video")
+        print(result)
+        assert "Task completed" in result
+        print("PASS\n")
 
-    print("All tests passed!")
+        # Test 7: List shows DONE
+        print("Test 7: List shows both tasks as DONE")
+        result = manage_tasks("list")
+        print(result)
+        assert result.count("DONE") == 2
+        print("PASS\n")
+
+        # Test 8: Complete already done
+        print("Test 8: Complete already-done task")
+        result = manage_tasks("complete", "1")
+        print(result)
+        assert "already completed" in result
+        print("PASS\n")
+
+        # Test 9: Invalid action
+        print("Test 9: Invalid action")
+        result = manage_tasks("delete")
+        print(result)
+        assert "Unknown action" in result
+        print("PASS\n")
+
+        # Test 10: Add with no title
+        print("Test 10: Add with no title")
+        result = manage_tasks("add", "")
+        print(result)
+        assert "Error" in result
+        print("PASS\n")
+
+        print("All tests passed!")
+    finally:
+        teardown()
 
 
 if __name__ == "__main__":

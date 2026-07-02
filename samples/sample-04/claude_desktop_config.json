@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "pricing-calculator": {
+    "task-manager": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-04/server.py"],
       "env": {}

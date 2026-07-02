@@ -1,92 +1,59 @@
 """
-GitHub Stats MCP Server
------------------------
-Exposes one tool: get_repo_stats
-Get star count, open issue count, and last commit date for any public GitHub repo.
+Customer Lookup MCP Server
+--------------------------
+Exposes one tool: lookup_customer
+Look up a customer by email or ID from a local JSON database.
 """
 
 import json
-import urllib.request
-import urllib.error
-from datetime import datetime
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("github-stats")
+mcp = FastMCP("customer-lookup")
+
+CUSTOMERS = {
+    "C001": {"customer_id": "C001", "name": "Alice Johnson", "email": "alice@acmecorp.com", "plan": "pro", "created_at": "2023-04-12", "open_tickets": 2},
+    "C002": {"customer_id": "C002", "name": "Bob Smith", "email": "bob@startup.io", "plan": "starter", "created_at": "2024-01-08", "open_tickets": 0},
+    "C003": {"customer_id": "C003", "name": "Carol White", "email": "carol@enterprise.com", "plan": "enterprise", "created_at": "2022-11-30", "open_tickets": 5},
+    "C004": {"customer_id": "C004", "name": "David Lee", "email": "david@freelancer.dev", "plan": "starter", "created_at": "2024-06-01", "open_tickets": 1},
+    "C005": {"customer_id": "C005", "name": "Eve Martinez", "email": "eve@bigco.net", "plan": "enterprise", "created_at": "2021-08-19", "open_tickets": 0},
+}
+
+EMAIL_INDEX = {v["email"]: k for k, v in CUSTOMERS.items()}
 
 
 @mcp.tool()
-def get_repo_stats(repo: str) -> str:
+def lookup_customer(customer_id: str) -> str:
     """
-    Get star count, open issue count, and last commit date for any public GitHub repo.
+    Look up a customer by email or ID from a local JSON database.
 
     Args:
-        repo: Repository in owner/repo format, e.g. 'anthropics/anthropic-sdk-python'.
+        customer_id: The customer ID (e.g. C001) or email address to look up.
 
     Returns:
-        stars, open_issues, last_commit_date, and language as JSON.
+        Customer name, plan, created_at, and open_tickets count.
     """
-    repo = repo.strip().strip("/")
+    query = customer_id.strip()
 
-    if repo.count("/") != 1:
-        return f"Invalid repo format '{repo}'. Use owner/repo, e.g. 'anthropics/anthropic-sdk-python'."
+    if "@" in query:
+        resolved_id = EMAIL_INDEX.get(query.lower())
+        if not resolved_id:
+            return f"No customer found with email '{query}'."
+        query = resolved_id
 
-    owner, name = repo.split("/", 1)
+    customer = CUSTOMERS.get(query.upper())
+    if not customer:
+        return f"No customer found with ID '{query}'."
 
-    # ---- Fetch repo metadata from GitHub public API (no auth needed) ----
-    repo_url = f"https://api.github.com/repos/{owner}/{name}"
-    commits_url = f"https://api.github.com/repos/{owner}/{name}/commits?per_page=1"
-
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "mcp-github-stats/1.0",
-    }
-
-    try:
-        # Fetch repo info
-        req = urllib.request.Request(repo_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            repo_data = json.loads(resp.read().decode())
-
-        stars = repo_data.get("stargazers_count", 0)
-        open_issues = repo_data.get("open_issues_count", 0)
-        language = repo_data.get("language") or "unknown"
-
-        # Fetch last commit date
-        req2 = urllib.request.Request(commits_url, headers=headers)
-        with urllib.request.urlopen(req2, timeout=10) as resp2:
-            commits = json.loads(resp2.read().decode())
-
-        last_commit_date = "unknown"
-        if commits:
-            raw_date = commits[0]["commit"]["committer"]["date"]
-            # Parse ISO 8601 and reformat nicely
-            try:
-                dt = datetime.strptime(raw_date, "%Y-%m-%dT%H:%M:%SZ")
-                last_commit_date = dt.strftime("%Y-%m-%d")
-            except ValueError:
-                last_commit_date = raw_date[:10]
-
-        return json.dumps({
-            "repo": f"{owner}/{name}",
-            "stars": stars,
-            "open_issues": open_issues,
-            "last_commit_date": last_commit_date,
-            "language": language,
-        }, indent=2)
-
-    except urllib.error.HTTPError as e:
-        if e.code == 404:
-            return f"Repository '{repo}' not found. Check that it's public and the name is correct."
-        elif e.code == 403:
-            return "GitHub API rate limit exceeded. Wait a minute and try again (or add a GitHub token)."
-        else:
-            return f"GitHub API error: HTTP {e.code} — {e.reason}"
-    except urllib.error.URLError as e:
-        return f"Network error reaching GitHub API: {e.reason}"
-    except Exception as e:
-        return f"Unexpected error: {e}"
+    return json.dumps({
+        "customer_id": customer["customer_id"],
+        "name": customer["name"],
+        "email": customer["email"],
+        "plan": customer["plan"],
+        "created_at": customer["created_at"],
+        "open_tickets": customer["open_tickets"],
+    }, indent=2)
 
 
 if __name__ == "__main__":
-    print("Starting GitHub Stats MCP server...")
+    print("Starting Customer Lookup MCP server...")
     mcp.run()

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample 05 — Document Search MCP Server · HO8 · ForgeMind AI</title>
+<title>Sample 05 — Pricing Calculator MCP Server · HO8 · ForgeMind AI</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -42,6 +42,9 @@
   .card p{font-size:14px;color:var(--text);line-height:1.65;margin:0 0 10px;}
   .card ul{padding-left:20px;margin:0 0 10px;}
   .card li{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:5px;}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px;}
+  th{background:#F1F0EA;color:var(--text);font-weight:600;font-family:var(--mono);font-size:12px;padding:9px 12px;text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);}
   .tip{background:#FDF6F6;border:1px solid #F3C6C6;border-radius:8px;padding:14px 18px;margin-bottom:24px;}
   .tip .th{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;color:var(--primary);margin-bottom:4px;}
   .tip p{font-size:13px;color:var(--textSec);line-height:1.55;margin:0;}
@@ -66,13 +69,13 @@
   <div class="wrap">
     <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
     <div class="eyebrow">HO8 · Sample 05</div>
-    <h1>Document Search MCP Server</h1>
-    <p class="lede">Expose a <code>search_docs</code> tool that performs keyword search across a folder of <code>.txt</code> and <code>.md</code> files, returning excerpts with context.</p>
+    <h1>Pricing Calculator MCP Server</h1>
+    <p class="lede">Expose a <code>calculate_quote</code> tool that computes product quotes given a plan, seat count, and billing period — with annual discount logic built in.</p>
     <div class="pills">
       <span class="pill wk">Week 4</span>
       <span class="pill mod">M12 · MCP</span>
       <span class="pill fmt">Solo</span>
-      <span class="pill kind">Search</span>
+      <span class="pill kind">Calculator</span>
     </div>
 
     <div class="tip">
@@ -81,16 +84,16 @@
     </div>
 
     <div class="card">
-      <div class="section-h"><i data-lucide="search"></i> What this MCP server does</div>
-      <p>This server exposes a single tool called <code>search_docs</code>. Give it a keyword or phrase and it scans all <code>.txt</code> and <code>.md</code> files in a specified folder (defaulting to the <code>docs/</code> subfolder), returning up to 10 matching excerpts with 3 lines of surrounding context.</p>
-      <p>The sample comes with four pre-built documents in <code>docs/</code>:</p>
-      <ul>
-        <li><code>getting-started.md</code> — product onboarding guide</li>
-        <li><code>billing.md</code> — subscription and billing FAQ</li>
-        <li><code>api-reference.txt</code> — API endpoint reference</li>
-        <li><code>faq.txt</code> — general frequently asked questions</li>
-      </ul>
-      <p>No external service or index is required — the server reads files directly from disk.</p>
+      <div class="section-h"><i data-lucide="calculator"></i> What this MCP server does</div>
+      <p>This server exposes a single tool called <code>calculate_quote</code>. It accepts three inputs — plan tier, number of seats, and billing period — and returns a detailed pricing breakdown including unit price, subtotal, discount, and annual savings.</p>
+      <p>The pricing table baked into <code>server.py</code>:</p>
+      <table>
+        <tr><th>Plan</th><th>Monthly / seat</th><th>Annual discount</th><th>Max seats</th></tr>
+        <tr><td>Starter</td><td>$12.00</td><td>0%</td><td>5</td></tr>
+        <tr><td>Pro</td><td>$29.00</td><td>20% off</td><td>50</td></tr>
+        <tr><td>Enterprise</td><td>$79.00</td><td>25% off</td><td>10,000</td></tr>
+      </table>
+      <p>No external API or database is needed — all logic runs locally.</p>
 
       <div class="section-h"><i data-lucide="clipboard-check"></i> Requirements</div>
       <ul>
@@ -117,21 +120,14 @@ pip install -r requirements.txt
 python server.py</pre>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <p>You should see:</p>
-      <div class="code-block">
-        <pre>Starting Document Search MCP server...
-Default docs folder: /path/to/samples/sample-05/docs</pre>
-        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-      </div>
-      <p>Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
-      <p><strong>Want to search your own documents?</strong> Drop any <code>.txt</code> or <code>.md</code> files into the <code>docs/</code> folder (or pass a custom folder path to the tool) and the server will search them automatically.</p>
+      <p>You should see: <code>Starting Pricing Calculator MCP server...</code>. Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
 
       <div class="section-h"><i data-lucide="plug"></i> Connect to Claude Desktop</div>
       <p>Open Claude Desktop → <strong>Settings → Developer → Edit Config</strong> and paste the following into <code>claude_desktop_config.json</code>. Replace the path with the absolute path to <code>server.py</code> on your machine.</p>
       <div class="code-block">
         <pre>{
   "mcpServers": {
-    "doc-search": {
+    "pricing-calculator": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-05/server.py"],
       "env": {}
@@ -150,11 +146,11 @@ Default docs folder: /path/to/samples/sample-05/docs</pre>
 
       <div class="section-h"><i data-lucide="play"></i> Test it</div>
       <p>After restarting Claude Desktop, type any of these prompts in a new conversation:</p>
-      <div class="test-prompt">"Search the docs for 'billing'"</div>
-      <div class="test-prompt">"What does the documentation say about API rate limits?"</div>
-      <div class="test-prompt">"Find anything in the docs mentioning 'refund'"</div>
-      <div class="test-prompt">"Search for 'getting started' in the docs and summarize what you find"</div>
-      <p>You should see Claude call the <code>search_docs</code> tool (visible as a tool-use block) and return matching excerpts from the <code>docs/</code> folder. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
+      <div class="test-prompt">"What's the price for 10 Pro seats billed annually?"</div>
+      <div class="test-prompt">"Give me a quote for 3 Starter seats, monthly billing"</div>
+      <div class="test-prompt">"How much do I save going annual on Enterprise with 25 seats?"</div>
+      <div class="test-prompt">"Compare monthly vs annual pricing for the Pro plan with 5 seats"</div>
+      <p>You should see Claude call the <code>calculate_quote</code> tool (visible as a tool-use block) and return a full pricing breakdown. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
     </div>
 
     <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>

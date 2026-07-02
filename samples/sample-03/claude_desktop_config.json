@@ -1,9 +1,11 @@
 {
   "mcpServers": {
-    "task-manager": {
+    "github-stats": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-03/server.py"],
-      "env": {}
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_optional_token_for_higher_rate_limits"
+      }
     }
   }
 }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample 02 — GitHub Stats MCP Server · HO8 · ForgeMind AI</title>
+<title>Sample 02 — Customer Lookup MCP Server · HO8 · ForgeMind AI</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -19,15 +19,18 @@
   html,body{margin:0;}
   body{font-family:var(--font);background:var(--pageBg);color:var(--text);}
   a{color:inherit;}
+  /* dark header */
   header{height:56px;background:var(--headerBg);color:var(--headerText);display:flex;align-items:center;
     padding:0 20px;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--headerBorder);}
   .wordmark{font-weight:900;font-size:16px;letter-spacing:.02em;display:flex;align-items:center;gap:2px;}
   .wordmark .badge{background:var(--primary);color:#fff;padding:1px 6px;border-radius:5px;margin-left:2px;font-weight:800;}
   .header-right{margin-left:auto;color:var(--headerMuted);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;}
   .header-right .dot{width:6px;height:6px;border-radius:99px;background:var(--green);}
+  /* layout */
   .wrap{max-width:960px;margin:0 auto;padding:32px 24px 64px;}
   .back{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--textSec);text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-bottom:18px;}
   .back:hover{color:var(--primary);}
+  /* hero */
   .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);}
   h1{font-size:28px;font-weight:700;margin:8px 0 10px;letter-spacing:-.01em;}
   .lede{font-size:14px;color:var(--textSec);line-height:1.6;margin:0 0 22px;max-width:680px;}
@@ -35,6 +38,7 @@
   .pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;font-family:var(--mono);}
   .pill.wk{background:#E7F0FE;color:#1877F2;} .pill.mod{background:#EEEDFE;color:#3C3489;}
   .pill.fmt{background:#E1F5EE;color:#0F6E56;} .pill.kind{background:#FAEEDA;color:#854F0B;}
+  /* card */
   .card{background:var(--cardBg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadowSm);padding:24px 26px;}
   .section-h{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;margin:30px 0 12px;}
   .section-h:first-child{margin-top:0;}
@@ -42,9 +46,11 @@
   .card p{font-size:14px;color:var(--text);line-height:1.65;margin:0 0 10px;}
   .card ul{padding-left:20px;margin:0 0 10px;}
   .card li{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:5px;}
+  /* subscription note */
   .tip{background:#FDF6F6;border:1px solid #F3C6C6;border-radius:8px;padding:14px 18px;margin-bottom:24px;}
   .tip .th{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;color:var(--primary);margin-bottom:4px;}
   .tip p{font-size:13px;color:var(--textSec);line-height:1.55;margin:0;}
+  /* code + prompts */
   .code-block{background:#0F0F10;border:1px solid #26262A;border-radius:8px;padding:16px 18px;margin:12px 0;position:relative;overflow-x:auto;}
   .code-block pre{color:#E5E5E0;font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre;margin:0;}
   .copy-btn{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.1);color:#E5E5E0;border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-family:var(--mono);cursor:pointer;}
@@ -66,13 +72,13 @@
   <div class="wrap">
     <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
     <div class="eyebrow">HO8 · Sample 02</div>
-    <h1>GitHub Stats MCP Server</h1>
-    <p class="lede">Expose a <code>get_repo_stats</code> tool that fetches live star count, open issues, and last commit date for any public GitHub repository.</p>
+    <h1>Customer Lookup MCP Server</h1>
+    <p class="lede">Expose a <code>lookup_customer</code> tool that lets Claude query a local in-memory customer database by ID or email.</p>
     <div class="pills">
       <span class="pill wk">Week 4</span>
       <span class="pill mod">M12 · MCP</span>
       <span class="pill fmt">Solo</span>
-      <span class="pill kind">Public API</span>
+      <span class="pill kind">Database</span>
     </div>
 
     <div class="tip">
@@ -81,16 +87,15 @@
     </div>
 
     <div class="card">
-      <div class="section-h"><i data-lucide="git-branch"></i> What this MCP server does</div>
-      <p>This server wraps the <strong>GitHub public API</strong> (no GitHub token required) in a single MCP tool called <code>get_repo_stats</code>. Pass any public repository in <code>owner/repo</code> format and the tool returns the star count, open issue count, primary language, and date of the most recent commit.</p>
-      <p>It uses only Python's built-in <code>urllib</code> — no extra HTTP library is needed beyond the <code>mcp</code> package itself.</p>
+      <div class="section-h"><i data-lucide="database"></i> What this MCP server does</div>
+      <p>This server registers one tool called <code>lookup_customer</code>. When you ask Claude something like "what plan is alice@acmecorp.com on?", Claude calls the tool, which looks up the customer from a hard-coded in-memory dictionary and returns their name, plan tier, account creation date, and open ticket count.</p>
+      <p>The database lives entirely in <code>server.py</code> — no external database or API key is required.</p>
 
       <div class="section-h"><i data-lucide="clipboard-check"></i> Requirements</div>
       <ul>
         <li>Python 3.10 or newer</li>
         <li>Claude Desktop — free download at <a href="https://claude.ai/download" target="_blank">claude.ai/download</a> (uses your Claude.ai subscription, no API key)</li>
         <li><code>mcp</code> Python package (installed below)</li>
-        <li>Internet access to reach <code>api.github.com</code> (public, unauthenticated)</li>
       </ul>
 
       <div class="section-h"><i data-lucide="terminal"></i> Build the server</div>
@@ -111,14 +116,14 @@ pip install -r requirements.txt
 python server.py</pre>
         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
       </div>
-      <p>You should see: <code>Starting GitHub Stats MCP server...</code>. Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
+      <p>You should see: <code>Starting Customer Lookup MCP server...</code>. Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
 
       <div class="section-h"><i data-lucide="plug"></i> Connect to Claude Desktop</div>
       <p>Open Claude Desktop → <strong>Settings → Developer → Edit Config</strong> and paste the following into <code>claude_desktop_config.json</code>. Replace the path with the absolute path to <code>server.py</code> on your machine.</p>
       <div class="code-block">
         <pre>{
   "mcpServers": {
-    "github-stats": {
+    "customer-lookup": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-02/server.py"],
       "env": {}
@@ -137,11 +142,11 @@ python server.py</pre>
 
       <div class="section-h"><i data-lucide="play"></i> Test it</div>
       <p>After restarting Claude Desktop, type any of these prompts in a new conversation:</p>
-      <div class="test-prompt">"How many stars does anthropics/anthropic-sdk-python have?"</div>
-      <div class="test-prompt">"Get the GitHub stats for microsoft/vscode"</div>
-      <div class="test-prompt">"When was the last commit on facebook/react?"</div>
-      <div class="test-prompt">"Compare star counts for vuejs/vue and sveltejs/svelte"</div>
-      <p>You should see Claude call the <code>get_repo_stats</code> tool (visible as a tool-use block) and return live data from GitHub. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
+      <div class="test-prompt">"Look up customer C001"</div>
+      <div class="test-prompt">"What plan is alice@acmecorp.com on?"</div>
+      <div class="test-prompt">"How many open tickets does Carol White have?"</div>
+      <div class="test-prompt">"List all enterprise customers"</div>
+      <p>You should see Claude call the <code>lookup_customer</code> tool (visible as a tool-use block) and return customer details. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
     </div>
 
     <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>

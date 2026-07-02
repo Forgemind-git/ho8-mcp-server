@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "customer-lookup": {
+    "ho7-connection": {
       "command": "python",
       "args": ["/ABSOLUTE/PATH/TO/samples/sample-01/server.py"],
       "env": {}

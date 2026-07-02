@@ -1,75 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sample 05 — Document Search MCP Server | HO8</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#F8F9FA; color:#1a1a2e; line-height:1.7; }
-    :root { --color: #6D28D9; }
-    header { background: var(--color); color:#fff; padding:36px 32px 28px; }
-    header .back { font-size:13px; opacity:.75; text-decoration:none; color:#fff; display:inline-block; margin-bottom:12px; }
-    header .back:hover { opacity:1; }
-    header .badge { font-size:12px; font-weight:700; letter-spacing:.08em; opacity:.8; text-transform:uppercase; margin-bottom:6px; }
-    header h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
-    header p { font-size:15px; opacity:.85; max-width:640px; }
-    .sub-note { background:#fff; border-left:4px solid var(--color); padding:14px 20px; margin:24px 32px 0; border-radius:4px; font-size:14px; color:#374151; box-shadow:0 1px 4px rgba(0,0,0,.07); }
-    .sub-note strong { color:var(--color); }
-    main { max-width:820px; margin:0 auto; padding:32px 32px 60px; }
-    h2 { font-size:19px; font-weight:700; color:var(--color); margin:32px 0 10px; border-bottom:2px solid #EDE9FE; padding-bottom:6px; }
-    p { font-size:14.5px; color:#374151; margin-bottom:10px; }
-    ul { padding-left:20px; margin-bottom:10px; }
-    ul li { font-size:14.5px; color:#374151; margin-bottom:4px; }
-    .code-block { background:#1e1e2e; border-radius:8px; padding:18px 20px; margin:12px 0; position:relative; overflow-x:auto; }
-    .code-block pre { color:#cdd6f4; font-family:'Courier New', Courier, monospace; font-size:13.5px; white-space:pre; }
-    .copy-btn { position:absolute; top:10px; right:12px; background:rgba(255,255,255,.12); color:#cdd6f4; border:none; border-radius:5px; padding:4px 10px; font-size:12px; cursor:pointer; }
-    .copy-btn:hover { background:rgba(255,255,255,.22); }
-    .copy-btn.copied { background:rgba(109,40,217,.5); color:#fff; }
-    .test-prompt { background:#EDE9FE; border-radius:8px; padding:14px 18px; margin:10px 0; font-size:14px; color:#4C1D95; font-style:italic; }
-    footer { text-align:center; padding:24px; color:#9CA3AF; font-size:13px; border-top:1px solid #E5E7EB; }
-    @media(max-width:600px){ main{ padding:20px 16px 40px; } header{ padding:24px 16px; } .sub-note{ margin:16px 16px 0; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample 05 — Document Search MCP Server · HO8 · ForgeMind AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --pageBg:#F7F7F3; --headerBg:#0F0F10; --headerText:#F5F5F2; --headerMuted:#A1A1AA;
+    --headerBorder:rgba(255,255,255,.12); --cardBg:#fff; --border:#E5E5E0;
+    --text:#111; --textSec:#6B7280; --textMuted:#999; --primary:#dc2626; --primaryHover:#b91c1c;
+    --hover:#EFEEE6; --green:#0F6E56; --purple:#534AB7; --amber:#854F0B;
+    --shadowSm:0 1px 2px rgba(0,0,0,.08); --shadowMd:0 8px 24px rgba(0,0,0,.06);
+    --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{font-family:var(--font);background:var(--pageBg);color:var(--text);}
+  a{color:inherit;}
+  header{height:56px;background:var(--headerBg);color:var(--headerText);display:flex;align-items:center;
+    padding:0 20px;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--headerBorder);}
+  .wordmark{font-weight:900;font-size:16px;letter-spacing:.02em;display:flex;align-items:center;gap:2px;}
+  .wordmark .badge{background:var(--primary);color:#fff;padding:1px 6px;border-radius:5px;margin-left:2px;font-weight:800;}
+  .header-right{margin-left:auto;color:var(--headerMuted);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;}
+  .header-right .dot{width:6px;height:6px;border-radius:99px;background:var(--green);}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 24px 64px;}
+  .back{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--textSec);text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-bottom:18px;}
+  .back:hover{color:var(--primary);}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);}
+  h1{font-size:28px;font-weight:700;margin:8px 0 10px;letter-spacing:-.01em;}
+  .lede{font-size:14px;color:var(--textSec);line-height:1.6;margin:0 0 22px;max-width:680px;}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;font-family:var(--mono);}
+  .pill.wk{background:#E7F0FE;color:#1877F2;} .pill.mod{background:#EEEDFE;color:#3C3489;}
+  .pill.fmt{background:#E1F5EE;color:#0F6E56;} .pill.kind{background:#FAEEDA;color:#854F0B;}
+  .card{background:var(--cardBg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadowSm);padding:24px 26px;}
+  .section-h{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;margin:30px 0 12px;}
+  .section-h:first-child{margin-top:0;}
+  .section-h svg{color:var(--primary);width:18px;height:18px;}
+  .card p{font-size:14px;color:var(--text);line-height:1.65;margin:0 0 10px;}
+  .card ul{padding-left:20px;margin:0 0 10px;}
+  .card li{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:5px;}
+  .tip{background:#FDF6F6;border:1px solid #F3C6C6;border-radius:8px;padding:14px 18px;margin-bottom:24px;}
+  .tip .th{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;color:var(--primary);margin-bottom:4px;}
+  .tip p{font-size:13px;color:var(--textSec);line-height:1.55;margin:0;}
+  .code-block{background:#0F0F10;border:1px solid #26262A;border-radius:8px;padding:16px 18px;margin:12px 0;position:relative;overflow-x:auto;}
+  .code-block pre{color:#E5E5E0;font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre;margin:0;}
+  .copy-btn{position:absolute;top:10px;right:12px;background:rgba(255,255,255,.1);color:#E5E5E0;border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-family:var(--mono);cursor:pointer;}
+  .copy-btn:hover{background:rgba(255,255,255,.2);}
+  .copy-btn.copied{background:var(--primary);color:#fff;}
+  .test-prompt{background:#F1F0EA;border-left:3px solid var(--primary);border-radius:4px;padding:11px 15px;margin:8px 0;font-size:13.5px;color:var(--text);font-family:var(--mono);}
+  code{font-family:var(--mono);font-size:12px;background:#F1F0EA;padding:1px 5px;border-radius:4px;}
+  kbd{font-family:var(--mono);font-size:11px;background:#111;color:#fff;padding:1px 6px;border-radius:4px;}
+  footer{border-top:1px solid var(--border);margin-top:40px;padding-top:18px;font-size:12px;color:var(--textMuted);font-family:var(--mono);text-align:center;}
+  @media(max-width:680px){h1{font-size:23px;} .card{padding:18px;}}
+</style>
 </head>
 <body>
+  <header>
+    <span class="wordmark">FORGE<span class="badge">COURSE</span></span>
+    <span class="header-right"><span class="dot"></span>ForgeMind AI · Hands-On Portfolio</span>
+  </header>
 
-<header>
-  <a class="back" href="../../">← Back to HO8</a>
-  <div class="badge">HO8 · Sample 05</div>
-  <h1>Document Search MCP Server</h1>
-  <p>Expose a <code>search_docs</code> tool that performs keyword search across a folder of <code>.txt</code> and <code>.md</code> files, returning excerpts with context.</p>
-</header>
+  <div class="wrap">
+    <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
+    <div class="eyebrow">HO8 · Sample 05</div>
+    <h1>Document Search MCP Server</h1>
+    <p class="lede">Expose a <code>search_docs</code> tool that performs keyword search across a folder of <code>.txt</code> and <code>.md</code> files, returning excerpts with context.</p>
+    <div class="pills">
+      <span class="pill wk">Week 4</span>
+      <span class="pill mod">M12 · MCP</span>
+      <span class="pill fmt">Solo</span>
+      <span class="pill kind">Search</span>
+    </div>
 
-<div class="sub-note">
-  <strong>Uses your Claude.ai subscription via Claude Desktop — no ANTHROPIC_API_KEY needed.</strong>
-  Claude Desktop connects to this MCP server locally; your subscription provides the AI.
-</div>
+    <div class="tip">
+      <div class="th"><i data-lucide="shield-check"></i> Uses your Claude.ai subscription via Claude Desktop — no ANTHROPIC_API_KEY needed.</div>
+      <p>Claude Desktop connects to this MCP server locally; your subscription provides the AI.</p>
+    </div>
 
-<main>
+    <div class="card">
+      <div class="section-h"><i data-lucide="search"></i> What this MCP server does</div>
+      <p>This server exposes a single tool called <code>search_docs</code>. Give it a keyword or phrase and it scans all <code>.txt</code> and <code>.md</code> files in a specified folder (defaulting to the <code>docs/</code> subfolder), returning up to 10 matching excerpts with 3 lines of surrounding context.</p>
+      <p>The sample comes with four pre-built documents in <code>docs/</code>:</p>
+      <ul>
+        <li><code>getting-started.md</code> — product onboarding guide</li>
+        <li><code>billing.md</code> — subscription and billing FAQ</li>
+        <li><code>api-reference.txt</code> — API endpoint reference</li>
+        <li><code>faq.txt</code> — general frequently asked questions</li>
+      </ul>
+      <p>No external service or index is required — the server reads files directly from disk.</p>
 
-  <h2>What this MCP server does</h2>
-  <p>This server exposes a single tool called <code>search_docs</code>. Give it a keyword or phrase and it scans all <code>.txt</code> and <code>.md</code> files in a specified folder (defaulting to the <code>docs/</code> subfolder), returning up to 10 matching excerpts with 3 lines of surrounding context.</p>
-  <p>The sample comes with four pre-built documents in <code>docs/</code>:</p>
-  <ul>
-    <li><code>getting-started.md</code> — product onboarding guide</li>
-    <li><code>billing.md</code> — subscription and billing FAQ</li>
-    <li><code>api-reference.txt</code> — API endpoint reference</li>
-    <li><code>faq.txt</code> — general frequently asked questions</li>
-  </ul>
-  <p>No external service or index is required — the server reads files directly from disk.</p>
+      <div class="section-h"><i data-lucide="clipboard-check"></i> Requirements</div>
+      <ul>
+        <li>Python 3.10 or newer</li>
+        <li>Claude Desktop — free download at <a href="https://claude.ai/download" target="_blank">claude.ai/download</a> (uses your Claude.ai subscription, no API key)</li>
+        <li><code>mcp</code> Python package (installed below)</li>
+      </ul>
 
-  <h2>Requirements</h2>
-  <ul>
-    <li>Python 3.10 or newer</li>
-    <li>Claude Desktop — free download at <a href="https://claude.ai/download" target="_blank">claude.ai/download</a> (uses your Claude.ai subscription, no API key)</li>
-    <li><code>mcp</code> Python package (installed below)</li>
-  </ul>
-
-  <h2>Build the server</h2>
-  <p>Open a terminal and run:</p>
-
-  <div class="code-block">
-    <pre># 1. Go into the sample directory
+      <div class="section-h"><i data-lucide="terminal"></i> Build the server</div>
+      <p>Open a terminal and run:</p>
+      <div class="code-block">
+        <pre># 1. Go into the sample directory
 cd samples/sample-05
 
 # 2. (Recommended) Create a virtual environment
@@ -82,24 +115,21 @@ pip install -r requirements.txt
 
 # 4. Verify the server starts
 python server.py</pre>
-    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-  </div>
-
-  <p>You should see:</p>
-  <div class="code-block">
-    <pre>Starting Document Search MCP server...
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <p>You should see:</p>
+      <div class="code-block">
+        <pre>Starting Document Search MCP server...
 Default docs folder: /path/to/samples/sample-05/docs</pre>
-    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-  </div>
-  <p>Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <p>Press <kbd>Ctrl+C</kbd> to stop — Claude Desktop will launch it automatically when needed.</p>
+      <p><strong>Want to search your own documents?</strong> Drop any <code>.txt</code> or <code>.md</code> files into the <code>docs/</code> folder (or pass a custom folder path to the tool) and the server will search them automatically.</p>
 
-  <p><strong>Want to search your own documents?</strong> Drop any <code>.txt</code> or <code>.md</code> files into the <code>docs/</code> folder (or pass a custom folder path to the tool) and the server will search them automatically.</p>
-
-  <h2>Connect to Claude Desktop</h2>
-  <p>Open Claude Desktop → <strong>Settings → Developer → Edit Config</strong> and paste the following into <code>claude_desktop_config.json</code>. Replace the path with the absolute path to <code>server.py</code> on your machine.</p>
-
-  <div class="code-block">
-    <pre>{
+      <div class="section-h"><i data-lucide="plug"></i> Connect to Claude Desktop</div>
+      <p>Open Claude Desktop → <strong>Settings → Developer → Edit Config</strong> and paste the following into <code>claude_desktop_config.json</code>. Replace the path with the absolute path to <code>server.py</code> on your machine.</p>
+      <div class="code-block">
+        <pre>{
   "mcpServers": {
     "doc-search": {
       "command": "python",
@@ -108,40 +138,38 @@ Default docs folder: /path/to/samples/sample-05/docs</pre>
     }
   }
 }</pre>
-    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+      </div>
+      <p><strong>Tips:</strong></p>
+      <ul>
+        <li>On macOS the path looks like <code>/Users/yourname/ho8-mcp-server/samples/sample-05/server.py</code></li>
+        <li>On Windows use the full path with backslashes, e.g. <code>C:\Users\yourname\ho8-mcp-server\samples\sample-05\server.py</code></li>
+        <li>If you used a virtual environment, replace <code>python</code> with the full path to the venv Python, e.g. <code>/Users/yourname/ho8-mcp-server/samples/sample-05/.venv/bin/python</code></li>
+        <li>Save the file and <strong>restart Claude Desktop</strong> to load the new server.</li>
+      </ul>
+
+      <div class="section-h"><i data-lucide="play"></i> Test it</div>
+      <p>After restarting Claude Desktop, type any of these prompts in a new conversation:</p>
+      <div class="test-prompt">"Search the docs for 'billing'"</div>
+      <div class="test-prompt">"What does the documentation say about API rate limits?"</div>
+      <div class="test-prompt">"Find anything in the docs mentioning 'refund'"</div>
+      <div class="test-prompt">"Search for 'getting started' in the docs and summarize what you find"</div>
+      <p>You should see Claude call the <code>search_docs</code> tool (visible as a tool-use block) and return matching excerpts from the <code>docs/</code> folder. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
+    </div>
+
+    <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>
   </div>
 
-  <p><strong>Tips:</strong></p>
-  <ul>
-    <li>On macOS the path looks like <code>/Users/yourname/ho8-mcp-server/samples/sample-05/server.py</code></li>
-    <li>On Windows use the full path with backslashes, e.g. <code>C:\\Users\\yourname\\ho8-mcp-server\\samples\\sample-05\\server.py</code></li>
-    <li>If you used a virtual environment, replace <code>python</code> with the full path to the venv Python, e.g. <code>/Users/yourname/ho8-mcp-server/samples/sample-05/.venv/bin/python</code></li>
-    <li>Save the file and <strong>restart Claude Desktop</strong> to load the new server.</li>
-  </ul>
-
-  <h2>Test it</h2>
-  <p>After restarting Claude Desktop, type any of these prompts in a new conversation:</p>
-
-  <div class="test-prompt">"Search the docs for 'billing'"</div>
-  <div class="test-prompt">"What does the documentation say about API rate limits?"</div>
-  <div class="test-prompt">"Find anything in the docs mentioning 'refund'"</div>
-  <div class="test-prompt">"Search for 'getting started' in the docs and summarize what you find"</div>
-
-  <p>You should see Claude call the <code>search_docs</code> tool (visible as a tool-use block) and return matching excerpts from the <code>docs/</code> folder. If the tool icon appears in the chat toolbar, the server is connected correctly.</p>
-
-</main>
-
-<footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server">github.com/Forgemind-git/ho8-mcp-server</a></footer>
-
-<script>
-function copyCode(btn) {
-  const pre = btn.previousElementSibling;
-  navigator.clipboard.writeText(pre.textContent).then(() => {
-    btn.textContent = 'Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-  });
-}
-</script>
+  <script>
+  function copyCode(btn) {
+    const pre = btn.previousElementSibling;
+    navigator.clipboard.writeText(pre.textContent).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+  lucide.createIcons();
+  </script>
 </body>
 </html>

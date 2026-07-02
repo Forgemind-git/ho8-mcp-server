@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "task-manager": {
+    "weather": {
       "command": "python",
       "args": ["/Users/you/ho8-mcp-server/samples/sample-03/server.py"],
       "env": {}

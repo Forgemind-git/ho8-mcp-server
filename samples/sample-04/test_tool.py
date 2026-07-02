@@ -1,33 +1,33 @@
-"""
-test_tool.py — Quick local test for your MCP tools (no Claude required).
-Run: python test_tool.py
-"""
+# Quick test for the task-manager tools.
+# Run it with:  python test_tool.py
+# Note: this writes to the same tasks.db file the server uses — that's fine,
+# it just adds and completes one extra test task.
 
-import sys
 import os
+import sys
 
-# Make sure we can import server.py that sits next to this file.
+# Make sure we can import server.py from this same folder.
 sys.path.insert(0, os.path.dirname(__file__))
 
-from server import get_quote, get_commission
+from server import list_tasks, add_task, complete_task
 
 
 def run_tests():
-    print("=== Pricing Calculator MCP Server — Tool Tests ===\n")
+    print("1. Adding a task...")
+    result = add_task("Test task from test_tool")
+    assert "id" in result, "add_task should return a dict with an 'id'"
+    new_id = result["id"]
+    print(f"   Added task with id {new_id}")
 
-    # Test 1 — a quote for 10 seats on the pro plan, billed for a full year.
-    result = get_quote(10, "pro", 12)
-    print("get_quote(10, 'pro', 12) ->", result)
-    assert "error" not in result, "quote should not return an error"
-    assert "monthly" in result, "quote should include a 'monthly' figure"
-    print("PASS\n")
+    print("2. Listing tasks...")
+    tasks = list_tasks()
+    assert len(tasks) > 0, "list_tasks should return at least one task"
+    print(f"   Got {len(tasks)} task(s)")
 
-    # Test 2 — senior-tier commission on a $5,000 deal = 8% = $400.00.
-    result = get_commission(5000.0, "senior")
-    print("get_commission(5000.0, 'senior') ->", result)
-    assert "amount" in result, "commission should include an 'amount'"
-    assert result["amount"] == 400.0, "8% of 5000 should be 400.0"
-    print("PASS\n")
+    print("3. Completing the task we just added...")
+    done = complete_task(new_id)
+    assert done == "ok", f"complete_task should return 'ok', got {done!r}"
+    print(f"   complete_task returned: {done}")
 
     print("All tests passed.")
 

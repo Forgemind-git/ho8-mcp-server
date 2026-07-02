@@ -1,146 +1,140 @@
-# MCP Server: Task Manager
-# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed — uses your Claude.ai subscription via Claude Desktop
+# MCP Server: Weather (API Wrapper)
+# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed
+# Uses your Claude.ai subscription via Claude Desktop
 #
-# This server gives Claude three tools to manage a simple to-do list that
-# lives in a local SQLite file (tasks.db) right next to this script.
+# This is a WORKING example. Clone it, run it, see it work. It wraps the free
+# Open-Meteo weather API (no signup, no API key) so Claude can answer real
+# weather questions instead of guessing. Only the Python standard library and
+# the `mcp` package are used.
 
-import os
-import sqlite3
-
+import json
+import urllib.parse
+import urllib.request
 from mcp.server.fastmcp import FastMCP
 
-# The name you'll see for this server inside Claude Desktop.
-mcp = FastMCP("task-manager")
+mcp = FastMCP("weather")
 
-# Where we keep the tasks. This file is created automatically on first run,
-# sitting in the same folder as this server.py.
-DB_FILE = os.path.join(os.path.dirname(__file__), "tasks.db")
-
-
-def _connect():
-    """Open a connection to the SQLite database.
-
-    row_factory = sqlite3.Row lets us read columns by name (row["title"]),
-    which keeps the code below nice and readable.
-    """
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def _init_db():
-    """Create the tasks table if it doesn't exist yet, and seed a few
-    example tasks the very first time so the list isn't empty."""
-    conn = _connect()
-    try:
-        # Create the table. Each task has an id, a title, a status
-        # ('todo' or 'done'), and an optional due date stored as text.
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT,
-                status TEXT DEFAULT 'todo',
-                due_date TEXT
-            )
-            """
-        )
-
-        # If the table is empty, drop in 3 friendly example tasks so a
-        # beginner sees something the moment they connect Claude.
-        count = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
-        if count == 0:
-            conn.executemany(
-                "INSERT INTO tasks (title, status, due_date) VALUES (?, ?, ?)",
-                [
-                    ("Email the Q3 report to finance", "todo", "2026-07-01"),
-                    ("Book flights for the Lisbon conference", "todo", "2026-07-10"),
-                    ("Review pull request #42", "todo", ""),
-                ],
-            )
-
-        conn.commit()
-    finally:
-        conn.close()
+# Open-Meteo's weather_code is a number. This small dictionary turns the most
+# common codes into plain-English conditions a person (and Claude) can read.
+WEATHER_CODES = {
+    0: "Clear",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Fog",
+    51: "Drizzle",
+    53: "Drizzle",
+    55: "Drizzle",
+    61: "Rain",
+    63: "Rain",
+    65: "Rain",
+    71: "Snow",
+    73: "Snow",
+    75: "Snow",
+    80: "Rain showers",
+    81: "Rain showers",
+    82: "Rain showers",
+    95: "Thunderstorm",
+}
 
 
-# Set up the database the moment this file is imported, so the tools below
-# always have a table to work with.
-_init_db()
+def _get_json(url: str) -> dict:
+    """Fetch a URL and return the parsed JSON. Times out after 10 seconds so the
+    server never hangs waiting on the network."""
+    with urllib.request.urlopen(url, timeout=10) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def _geocode(city: str) -> dict:
+    """Turn a city name (e.g. "Berlin") into latitude/longitude using
+    Open-Meteo's free geocoding API. Returns a dict with 'lat', 'lon' and the
+    resolved 'name', or raises ValueError if the city can't be found."""
+    # quote() makes the city name safe to drop into a URL (handles spaces, etc.)
+    query = urllib.parse.quote(city)
+    url = (
+        "https://geocoding-api.open-meteo.com/v1/search"
+        f"?name={query}&count=1"
+    )
+    data = _get_json(url)
+    results = data.get("results")
+    if not results:
+        raise ValueError(f"Could not find a city called '{city}'.")
+    top = results[0]
+    return {
+        "lat": top["latitude"],
+        "lon": top["longitude"],
+        "name": top["name"],
+    }
 
 
 @mcp.tool()
-def list_tasks(status: str = "") -> list:
-    """List your tasks. Pass status='todo' to see only open tasks,
-    or status='done' to see only finished ones. Leave it empty for all.
+def get_weather(city: str) -> dict:
+    """Get the CURRENT weather for a city.
 
-    Returns a list of dicts like {"id", "title", "status", "due_date"}.
+    Returns a dict with the city name, temperature (°C), a plain-English
+    condition and the humidity (%). Example:
+    {"city": "Berlin", "temp": 18.2, "condition": "Partly cloudy", "humidity": 61}
     """
-    conn = _connect()
     try:
-        if status:
-            # Filter by the requested status (e.g. "todo" or "done").
-            rows = conn.execute(
-                "SELECT id, title, status, due_date FROM tasks WHERE status = ? ORDER BY id",
-                (status,),
-            ).fetchall()
-        else:
-            # No filter — return every task.
-            rows = conn.execute(
-                "SELECT id, title, status, due_date FROM tasks ORDER BY id"
-            ).fetchall()
-
-        # Turn each database row into a plain dictionary for Claude.
-        return [
-            {
-                "id": row["id"],
-                "title": row["title"],
-                "status": row["status"],
-                "due_date": row["due_date"],
-            }
-            for row in rows
-        ]
-    finally:
-        conn.close()
+        place = _geocode(city)
+        # Ask Open-Meteo for the current temperature, humidity and weather code.
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            f"?latitude={place['lat']}&longitude={place['lon']}"
+            "&current=temperature_2m,relative_humidity_2m,weather_code"
+            "&timezone=auto"
+        )
+        data = _get_json(url)
+        current = data["current"]
+        code = current["weather_code"]
+        return {
+            "city": place["name"],
+            "temp": current["temperature_2m"],
+            "condition": WEATHER_CODES.get(code, "Unknown"),
+            "humidity": current["relative_humidity_2m"],
+        }
+    except ValueError as e:
+        # City not found — return a friendly message instead of crashing.
+        return {"error": str(e)}
+    except Exception as e:
+        # Any network / parsing problem ends up here.
+        return {"error": f"Could not fetch weather for '{city}': {e}"}
 
 
 @mcp.tool()
-def add_task(title: str, due: str = "") -> dict:
-    """Add a new task to your list. 'title' is what to do; 'due' is an
-    optional due date like '2026-07-03'. New tasks start as 'todo'.
+def get_forecast(city: str, days: int = 3) -> list:
+    """Get a multi-day forecast (daily high/low) for a city.
 
-    Returns {"id": <new id>} for the task that was created.
+    `days` is clamped to between 1 and 7. Returns a list of dicts like:
+    [{"date": "2026-06-28", "high": 24.1, "low": 14.3}, ...]
     """
-    conn = _connect()
     try:
-        cursor = conn.execute(
-            "INSERT INTO tasks (title, status, due_date) VALUES (?, 'todo', ?)",
-            (title, due),
+        # Keep days within the range Open-Meteo supports (1 to 7).
+        days = max(1, min(7, days))
+        place = _geocode(city)
+        url = (
+            "https://api.open-meteo.com/v1/forecast"
+            f"?latitude={place['lat']}&longitude={place['lon']}"
+            "&daily=temperature_2m_max,temperature_2m_min"
+            f"&forecast_days={days}&timezone=auto"
         )
-        conn.commit()
-        # lastrowid is the id SQLite gave the brand-new row.
-        return {"id": cursor.lastrowid}
-    finally:
-        conn.close()
-
-
-@mcp.tool()
-def complete_task(id: int) -> str:
-    """Mark a task as done by its id. Returns 'ok' when it worked, or a
-    friendly note if no task has that id."""
-    conn = _connect()
-    try:
-        cursor = conn.execute(
-            "UPDATE tasks SET status = 'done' WHERE id = ?",
-            (id,),
-        )
-        conn.commit()
-        # rowcount tells us how many rows changed — 0 means no such task.
-        if cursor.rowcount > 0:
-            return "ok"
-        return f"No task with id {id}"
-    finally:
-        conn.close()
+        data = _get_json(url)
+        daily = data["daily"]
+        # The API returns parallel lists (dates, highs, lows). Zip them together
+        # into one tidy row per day.
+        forecast = []
+        for date, high, low in zip(
+            daily["time"],
+            daily["temperature_2m_max"],
+            daily["temperature_2m_min"],
+        ):
+            forecast.append({"date": date, "high": high, "low": low})
+        return forecast
+    except ValueError as e:
+        return [{"error": str(e)}]
+    except Exception as e:
+        return [{"error": f"Could not fetch forecast for '{city}': {e}"}]
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "weather": {
+    "customer-lookup": {
       "command": "python",
       "args": ["/Users/you/ho8-mcp-server/samples/sample-02/server.py"],
       "env": {}

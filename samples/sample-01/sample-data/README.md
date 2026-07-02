@@ -1,15 +1,16 @@
 # Sample Data
 
-This folder contains **`customers.csv`** — 8 example customers the server reads
-on startup, so the project works the moment you run it.
+This folder contains **`ho7_items.csv`** — example rows standing in for the
+solution you built in HO7, so the project works the moment you run it.
 
-Columns: `id, name, email, plan, status`
+Columns: `id, title, status, notes`
 
 ```
-id,name,email,plan,status
-C001,Alice Johnson,alice@acmecorp.com,pro,active
-C002,Bob Smith,bob@startup.io,starter,active
+id,title,status,notes
+P001,Weekly report generator,done,Built in HO7 — produces the Monday summary
+P002,Lead follow-up drafts,in_progress,HO7 capstone module that drafts replies
 ```
 
-To use your own data, just replace the rows in `customers.csv` with your real
-customers — keep the header row the same and the server keeps working.
+To make it yours, replace the rows with data from your real HO7 project — keep
+the header row the same and the server keeps working. Better still, edit
+`server.py` to query your HO7 database, API, or export directly.

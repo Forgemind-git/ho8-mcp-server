@@ -1,35 +1,57 @@
-# Quick test for the task-manager tools.
-# Run it with:  python test_tool.py
-# Note: this writes to the same tasks.db file the server uses — that's fine,
-# it just adds and completes one extra test task.
+"""
+test_tool.py — Run the tools directly, no Claude required.
+Run: python test_tool.py
 
-import os
+This proves the server works before you connect it to Claude Desktop.
+Note: this test calls the live Open-Meteo API, so you need an internet
+connection. If you're offline, it will skip the live checks instead of failing.
+"""
+
 import sys
+import os
 
-# Make sure we can import server.py from this same folder.
 sys.path.insert(0, os.path.dirname(__file__))
 
-from server import list_tasks, add_task, complete_task
+from server import get_weather, get_forecast
 
 
 def run_tests():
-    print("1. Adding a task...")
-    result = add_task("Test task from test_tool")
-    assert "id" in result, "add_task should return a dict with an 'id'"
-    new_id = result["id"]
-    print(f"   Added task with id {new_id}")
+    print("=== Weather MCP Server — Tool Tests ===\n")
 
-    print("2. Listing tasks...")
-    tasks = list_tasks()
-    assert len(tasks) > 0, "list_tasks should return at least one task"
-    print(f"   Got {len(tasks)} task(s)")
+    try:
+        # Test 1 — current weather for Berlin
+        weather = get_weather("Berlin")
+        print("get_weather('Berlin') ->", weather)
 
-    print("3. Completing the task we just added...")
-    done = complete_task(new_id)
-    assert done == "ok", f"complete_task should return 'ok', got {done!r}"
-    print(f"   complete_task returned: {done}")
+        # Test 2 — 3-day forecast for Berlin
+        forecast = get_forecast("Berlin", 3)
+        print("get_forecast('Berlin', 3) ->", forecast)
+    except Exception as e:
+        print("Skipping live test (no internet?):", e)
+        return
 
-    print("All tests passed.")
+    # If the calls came back, make sure they have the shape we expect.
+    if "error" in weather:
+        print("Skipping live test (no internet?):", weather["error"])
+        return
+
+    assert "city" in weather
+    assert "temp" in weather
+    assert "condition" in weather
+    assert "humidity" in weather
+    print("PASS — get_weather returned all expected keys\n")
+
+    if forecast and "error" in forecast[0]:
+        print("Skipping live test (no internet?):", forecast[0]["error"])
+        return
+
+    assert len(forecast) >= 1
+    assert "date" in forecast[0]
+    assert "high" in forecast[0]
+    assert "low" in forecast[0]
+    print("PASS — get_forecast returned all expected keys\n")
+
+    print("All tests passed. Your server is ready to connect to Claude Desktop.")
 
 
 if __name__ == "__main__":

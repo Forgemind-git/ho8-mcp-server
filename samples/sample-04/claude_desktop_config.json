@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "pricing-calculator": {
+    "task-manager": {
       "command": "python",
       "args": ["/Users/you/ho8-mcp-server/samples/sample-04/server.py"],
       "env": {}

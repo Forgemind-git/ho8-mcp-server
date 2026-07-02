@@ -1,0 +1,5 @@
+id,title,status,notes
+P001,Weekly report generator,done,Built in HO7 — produces the Monday summary
+P002,Lead follow-up drafts,in_progress,HO7 capstone module that drafts replies
+P003,Invoice reconciliation,todo,Planned extension of the HO7 project
+P004,Onboarding checklist,done,HO7 flow that sets up a new client

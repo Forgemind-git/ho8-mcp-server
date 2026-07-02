@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample 04 — Pricing Calculator · HO8 Starter · ForgeMind AI</title>
+<title>Sample 04 — Task Manager · HO8 Starter · ForgeMind AI</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -61,44 +61,45 @@
   <div class="wrap">
     <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
     <div class="eyebrow">HO8 · Sample 04 · Starter</div>
-    <h1>Pricing Calculator MCP Server</h1>
-    <p class="lede">Build an MCP server that lets Claude calculate quotes and commissions from your pricing table.</p>
+    <h1>Task Manager MCP Server</h1>
+    <p class="lede">Build an MCP server that lets Claude read and write your task list.</p>
     <div class="pills">
       <span class="pill wk">Week 4</span>
       <span class="pill mod">M12 · MCP</span>
       <span class="pill fmt">Solo</span>
-      <span class="pill kind">Calculator</span>
+      <span class="pill kind">Read + Write</span>
     </div>
 
     <div class="starter">
       <div class="th"><i data-lucide="package-open"></i> Starter branch — copy &amp; use</div>
-      <p>This server already works as-is. No API key needed — it runs on your Claude.ai subscription through Claude Desktop. Just connect it and ask for a quote.</p>
+      <p>This server already works out of the box. No API key needed — it runs on your Claude.ai subscription via Claude Desktop. Just connect it and start asking.</p>
     </div>
 
     <div class="card">
       <div class="section-h"><i data-lucide="target"></i> Problem</div>
-      <p>Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.</p>
+      <p>Your tasks live in a tracker and you context-switch constantly. Build an MCP server that lets Claude read and write your task list.</p>
 
       <div class="section-h"><i data-lucide="wrench"></i> Tools it gives Claude</div>
       <ul>
-        <li><code>get_quote(seats, plan, term_months)</code> — returns {monthly, annual, discount}</li>
-        <li><code>get_commission(deal_value, tier)</code> — returns {amount, pct}</li>
+        <li><code>list_tasks(status?)</code> — returns [{id, title, status, due_date}]</li>
+        <li><code>add_task(title, due?)</code> — returns {id}</li>
+        <li><code>complete_task(id)</code> — returns ok</li>
       </ul>
 
       <div class="section-h"><i data-lucide="database"></i> Data source</div>
-      <p>Hardcoded pricing table in Python — no external database needed.</p>
+      <p>SQLite local file. Store tasks in a <code>tasks.db</code> file next to server.py.</p>
 
       <div class="section-h"><i data-lucide="list-ordered"></i> Steps</div>
       <ol>
         <li>Run <code>pip install mcp</code></li>
-        <li>(Optional) Run <code>python test_tool.py</code> to confirm the tools work — you should see "All tests passed."</li>
-        <li>Edit the path in <code>claude_desktop_config.json</code> so it points to your copy of <code>server.py</code></li>
-        <li>Paste the <code>pricing-calculator</code> block into Claude Desktop → Settings → Developer → Edit Config, then save</li>
-        <li>Quit Claude Desktop and reopen it</li>
-        <li>Ask Claude for a quote (see the example prompt below)</li>
+        <li>(Optional) Run <code>python test_tool.py</code> to confirm everything works — you should see "All tests passed."</li>
+        <li>Edit <code>claude_desktop_config.json</code> so the path points to your copy of <code>server.py</code></li>
+        <li>Paste the config into Claude Desktop Settings &gt; Developer &gt; Edit Config, then save</li>
+        <li>Quit and reopen Claude Desktop to load the tools</li>
+        <li>Ask Claude: "What tasks are open?"</li>
       </ol>
 
-      <div class="trythis"><strong>Try this prompt:</strong> "Using my pricing tools, quote 10 seats on the pro plan billed annually (12 months), and tell me the senior-tier commission on that annual deal value."</div>
+      <div class="trythis"><strong>Try this:</strong> "Using my task-manager tools, show my open tasks, then add 'Prepare slides for Monday standup' due 2026-07-03, and list my tasks again to confirm."</div>
     </div>
 
     <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>

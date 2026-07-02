@@ -1,110 +1,147 @@
-# MCP Server: Pricing Calculator
-# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed.
-# Uses your Claude.ai subscription via Claude Desktop.
-# ---------------------------------------------------------------------------
-# This is a tiny, fully-working MCP server. It gives Claude two "tools" it can
-# call to do your pricing and commission math reliably. The numbers live HERE,
-# in this file, so Claude doesn't have to guess or remember them.
-# ---------------------------------------------------------------------------
+# MCP Server: Task Manager
+# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed — uses your Claude.ai subscription via Claude Desktop
+#
+# This server gives Claude three tools to manage a simple to-do list that
+# lives in a local SQLite file (tasks.db) right next to this script.
+
+import os
+import sqlite3
 
 from mcp.server.fastmcp import FastMCP
 
-# Create the MCP server. The name is what shows up inside Claude Desktop.
-mcp = FastMCP("pricing-calculator")
+# The name you'll see for this server inside Claude Desktop.
+mcp = FastMCP("task-manager")
 
-# -- Your pricing table -----------------------------------------------------
-# Each plan has a per-seat monthly price and an annual discount (0.20 = 20% off
-# when the customer pays for a full year). Edit these to match your real plans.
-PRICING = {
-    "starter":    {"monthly_per_seat": 12.0, "annual_discount": 0.0},
-    "pro":        {"monthly_per_seat": 29.0, "annual_discount": 0.20},
-    "enterprise": {"monthly_per_seat": 79.0, "annual_discount": 0.25},
-}
+# Where we keep the tasks. This file is created automatically on first run,
+# sitting in the same folder as this server.py.
+DB_FILE = os.path.join(os.path.dirname(__file__), "tasks.db")
 
-# -- Your commission tiers --------------------------------------------------
-# How much commission a rep earns, as a fraction of the deal value.
-COMMISSION_TIERS = {"junior": 0.05, "senior": 0.08, "lead": 0.10}
+
+def _connect():
+    """Open a connection to the SQLite database.
+
+    row_factory = sqlite3.Row lets us read columns by name (row["title"]),
+    which keeps the code below nice and readable.
+    """
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def _init_db():
+    """Create the tasks table if it doesn't exist yet, and seed a few
+    example tasks the very first time so the list isn't empty."""
+    conn = _connect()
+    try:
+        # Create the table. Each task has an id, a title, a status
+        # ('todo' or 'done'), and an optional due date stored as text.
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                status TEXT DEFAULT 'todo',
+                due_date TEXT
+            )
+            """
+        )
+
+        # If the table is empty, drop in 3 friendly example tasks so a
+        # beginner sees something the moment they connect Claude.
+        count = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+        if count == 0:
+            conn.executemany(
+                "INSERT INTO tasks (title, status, due_date) VALUES (?, ?, ?)",
+                [
+                    ("Email the Q3 report to finance", "todo", "2026-07-01"),
+                    ("Book flights for the Lisbon conference", "todo", "2026-07-10"),
+                    ("Review pull request #42", "todo", ""),
+                ],
+            )
+
+        conn.commit()
+    finally:
+        conn.close()
+
+
+# Set up the database the moment this file is imported, so the tools below
+# always have a table to work with.
+_init_db()
 
 
 @mcp.tool()
-def get_quote(seats: int, plan: str, term_months: int) -> dict:
-    """Calculate a price quote for a number of seats on a plan.
+def list_tasks(status: str = "") -> list:
+    """List your tasks. Pass status='todo' to see only open tasks,
+    or status='done' to see only finished ones. Leave it empty for all.
 
-    Args:
-        seats: How many user seats (must be at least 1).
-        plan: One of "starter", "pro", or "enterprise" (case-insensitive).
-        term_months: Length of the contract in months. 12 or more counts as
-            an annual term, which applies the plan's annual discount.
+    Returns a list of dicts like {"id", "title", "status", "due_date"}.
     """
-    # Be friendly about capitalisation: "Pro" and "pro" both work.
-    plan_key = plan.lower().strip()
+    conn = _connect()
+    try:
+        if status:
+            # Filter by the requested status (e.g. "todo" or "done").
+            rows = conn.execute(
+                "SELECT id, title, status, due_date FROM tasks WHERE status = ? ORDER BY id",
+                (status,),
+            ).fetchall()
+        else:
+            # No filter — return every task.
+            rows = conn.execute(
+                "SELECT id, title, status, due_date FROM tasks ORDER BY id"
+            ).fetchall()
 
-    # If the plan isn't one we know, tell the caller which ones are valid.
-    if plan_key not in PRICING:
-        return {
-            "error": f"Unknown plan '{plan}'. Valid plans: "
-                     + ", ".join(PRICING.keys())
-        }
-
-    # Seats has to be a real, positive number of people.
-    if seats < 1:
-        return {"error": "seats must be at least 1."}
-
-    info = PRICING[plan_key]
-    per_seat = info["monthly_per_seat"]
-    discount = info["annual_discount"]
-
-    # Plain monthly cost = seats x per-seat price.
-    monthly = seats * per_seat
-
-    # Yearly total before any discount, then apply the annual discount only if
-    # the customer is committing to a year or more.
-    yearly = monthly * 12
-    if term_months >= 12:
-        annual = yearly * (1 - discount)
-        discount_pct = int(round(discount * 100))
-    else:
-        # Short term: just the months they asked for, no annual discount.
-        annual = monthly * term_months
-        discount_pct = 0
-
-    return {
-        "plan": plan_key,
-        "seats": seats,
-        "term_months": term_months,
-        "monthly": round(monthly, 2),
-        "annual": round(annual, 2),
-        "discount": discount_pct,
-    }
+        # Turn each database row into a plain dictionary for Claude.
+        return [
+            {
+                "id": row["id"],
+                "title": row["title"],
+                "status": row["status"],
+                "due_date": row["due_date"],
+            }
+            for row in rows
+        ]
+    finally:
+        conn.close()
 
 
 @mcp.tool()
-def get_commission(deal_value: float, tier: str) -> dict:
-    """Calculate the commission earned on a deal.
+def add_task(title: str, due: str = "") -> dict:
+    """Add a new task to your list. 'title' is what to do; 'due' is an
+    optional due date like '2026-07-03'. New tasks start as 'todo'.
 
-    Args:
-        deal_value: The total value of the deal (e.g. the annual contract value).
-        tier: One of "junior", "senior", or "lead" (case-insensitive).
+    Returns {"id": <new id>} for the task that was created.
     """
-    # Again, accept any capitalisation.
-    tier_key = tier.lower().strip()
-
-    if tier_key not in COMMISSION_TIERS:
-        return {
-            "error": f"Unknown tier '{tier}'. Valid tiers: "
-                     + ", ".join(COMMISSION_TIERS.keys())
-        }
-
-    pct = COMMISSION_TIERS[tier_key]
-
-    return {
-        "tier": tier_key,
-        "deal_value": deal_value,
-        "pct": pct * 100,                      # show as a percentage, e.g. 8.0
-        "amount": round(deal_value * pct, 2),  # the actual commission earned
-    }
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "INSERT INTO tasks (title, status, due_date) VALUES (?, 'todo', ?)",
+            (title, due),
+        )
+        conn.commit()
+        # lastrowid is the id SQLite gave the brand-new row.
+        return {"id": cursor.lastrowid}
+    finally:
+        conn.close()
 
 
-# Start the server when run directly. Claude Desktop launches this for you.
+@mcp.tool()
+def complete_task(id: int) -> str:
+    """Mark a task as done by its id. Returns 'ok' when it worked, or a
+    friendly note if no task has that id."""
+    conn = _connect()
+    try:
+        cursor = conn.execute(
+            "UPDATE tasks SET status = 'done' WHERE id = ?",
+            (id,),
+        )
+        conn.commit()
+        # rowcount tells us how many rows changed — 0 means no such task.
+        if cursor.rowcount > 0:
+            return "ok"
+        return f"No task with id {id}"
+    finally:
+        conn.close()
+
+
 if __name__ == "__main__":
     mcp.run()

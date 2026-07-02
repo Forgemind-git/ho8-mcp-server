@@ -1,109 +1,110 @@
-# MCP Server: Document Search
-# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed
-# Uses your Claude.ai subscription via Claude Desktop
-#
-# It gives Claude two tools:
-#   - search_docs(query): find which documents mention a word or phrase
-#   - read_doc(filename): read the full text of one document
-#
-# The documents live in the "docs/" folder next to this file. Drop in any
-# .txt or .md files and Claude will be able to search them.
+# MCP Server: Pricing Calculator
+# Connects to Claude Desktop — no ANTHROPIC_API_KEY needed.
+# Uses your Claude.ai subscription via Claude Desktop.
+# ---------------------------------------------------------------------------
+# This is a tiny, fully-working MCP server. It gives Claude two "tools" it can
+# call to do your pricing and commission math reliably. The numbers live HERE,
+# in this file, so Claude doesn't have to guess or remember them.
+# ---------------------------------------------------------------------------
 
-import os
 from mcp.server.fastmcp import FastMCP
 
-# Create the MCP server. "doc-search" is the name Claude Desktop will show.
-mcp = FastMCP("doc-search")
+# Create the MCP server. The name is what shows up inside Claude Desktop.
+mcp = FastMCP("pricing-calculator")
 
-# The folder we search. By default it's the "docs" folder next to this file.
-DOCS_FOLDER = os.path.join(os.path.dirname(__file__), "docs")
+# -- Your pricing table -----------------------------------------------------
+# Each plan has a per-seat monthly price and an annual discount (0.20 = 20% off
+# when the customer pays for a full year). Edit these to match your real plans.
+PRICING = {
+    "starter":    {"monthly_per_seat": 12.0, "annual_discount": 0.0},
+    "pro":        {"monthly_per_seat": 29.0, "annual_discount": 0.20},
+    "enterprise": {"monthly_per_seat": 79.0, "annual_discount": 0.25},
+}
 
-# Only these file types are treated as searchable documents.
-ALLOWED_EXTENSIONS = (".txt", ".md")
-
-
-def _read_file_safely(path):
-    """Read a text file and return its contents, or None if it can't be read."""
-    try:
-        with open(path, "r", encoding="utf-8", errors="ignore") as f:
-            return f.read()
-    except Exception:
-        # Unreadable file (permissions, etc.) — skip it gracefully.
-        return None
+# -- Your commission tiers --------------------------------------------------
+# How much commission a rep earns, as a fraction of the deal value.
+COMMISSION_TIERS = {"junior": 0.05, "senior": 0.08, "lead": 0.10}
 
 
 @mcp.tool()
-def search_docs(query: str) -> list:
-    """Search all documents for a word or phrase (case-insensitive).
+def get_quote(seats: int, plan: str, term_months: int) -> dict:
+    """Calculate a price quote for a number of seats on a plan.
 
-    Returns a list of matches. Each match is a dict with:
-      - filename: the document's name (e.g. "billing.md")
-      - snippet:  a short ~150 character window around the first match
-      - path:     the document's path relative to the docs folder
-
-    Returns an empty list if nothing matches.
+    Args:
+        seats: How many user seats (must be at least 1).
+        plan: One of "starter", "pro", or "enterprise" (case-insensitive).
+        term_months: Length of the contract in months. 12 or more counts as
+            an annual term, which applies the plan's annual discount.
     """
-    results = []
-    needle = query.lower()  # what we're looking for, lowercased
+    # Be friendly about capitalisation: "Pro" and "pro" both work.
+    plan_key = plan.lower().strip()
 
-    # Walk through every file in the docs folder (and any sub-folders).
-    for root, _dirs, files in os.walk(DOCS_FOLDER):
-        for name in files:
-            # Only look at .txt and .md files.
-            if not name.lower().endswith(ALLOWED_EXTENSIONS):
-                continue
+    # If the plan isn't one we know, tell the caller which ones are valid.
+    if plan_key not in PRICING:
+        return {
+            "error": f"Unknown plan '{plan}'. Valid plans: "
+                     + ", ".join(PRICING.keys())
+        }
 
-            full_path = os.path.join(root, name)
-            text = _read_file_safely(full_path)
-            if text is None:
-                continue  # couldn't read it — move on
+    # Seats has to be a real, positive number of people.
+    if seats < 1:
+        return {"error": "seats must be at least 1."}
 
-            # Case-insensitive substring search.
-            position = text.lower().find(needle)
-            if position == -1:
-                continue  # this file doesn't mention the query
+    info = PRICING[plan_key]
+    per_seat = info["monthly_per_seat"]
+    discount = info["annual_discount"]
 
-            # Build a ~150-character window centered on the first match.
-            start = max(0, position - 60)
-            end = min(len(text), position + len(query) + 90)
-            snippet = text[start:end].strip().replace("\n", " ")
-            if start > 0:
-                snippet = "..." + snippet
-            if end < len(text):
-                snippet = snippet + "..."
+    # Plain monthly cost = seats x per-seat price.
+    monthly = seats * per_seat
 
-            results.append({
-                "filename": name,
-                "snippet": snippet,
-                "path": os.path.relpath(full_path, DOCS_FOLDER),
-            })
+    # Yearly total before any discount, then apply the annual discount only if
+    # the customer is committing to a year or more.
+    yearly = monthly * 12
+    if term_months >= 12:
+        annual = yearly * (1 - discount)
+        discount_pct = int(round(discount * 100))
+    else:
+        # Short term: just the months they asked for, no annual discount.
+        annual = monthly * term_months
+        discount_pct = 0
 
-    # Friendly: if nothing matched, return an empty list.
-    return results
+    return {
+        "plan": plan_key,
+        "seats": seats,
+        "term_months": term_months,
+        "monthly": round(monthly, 2),
+        "annual": round(annual, 2),
+        "discount": discount_pct,
+    }
 
 
 @mcp.tool()
-def read_doc(filename: str) -> dict:
-    """Read the full text of one document by its filename.
+def get_commission(deal_value: float, tier: str) -> dict:
+    """Calculate the commission earned on a deal.
 
-    Returns {"filename": ..., "content": ...} on success,
-    or {"error": ...} if no document with that name exists.
+    Args:
+        deal_value: The total value of the deal (e.g. the annual contract value).
+        tier: One of "junior", "senior", or "lead" (case-insensitive).
     """
-    target = os.path.basename(filename)  # ignore any folder parts in the input
+    # Again, accept any capitalisation.
+    tier_key = tier.lower().strip()
 
-    # Look for a file whose basename matches (case-insensitive).
-    for root, _dirs, files in os.walk(DOCS_FOLDER):
-        for name in files:
-            if name.lower() == target.lower():
-                text = _read_file_safely(os.path.join(root, name))
-                if text is None:
-                    return {"error": f"Could not read document '{filename}'"}
-                return {"filename": name, "content": text}
+    if tier_key not in COMMISSION_TIERS:
+        return {
+            "error": f"Unknown tier '{tier}'. Valid tiers: "
+                     + ", ".join(COMMISSION_TIERS.keys())
+        }
 
-    # No matching file found.
-    return {"error": f"No document named '{filename}'"}
+    pct = COMMISSION_TIERS[tier_key]
+
+    return {
+        "tier": tier_key,
+        "deal_value": deal_value,
+        "pct": pct * 100,                      # show as a percentage, e.g. 8.0
+        "amount": round(deal_value * pct, 2),  # the actual commission earned
+    }
 
 
-# Start the server when run directly (this is what Claude Desktop launches).
+# Start the server when run directly. Claude Desktop launches this for you.
 if __name__ == "__main__":
     mcp.run()

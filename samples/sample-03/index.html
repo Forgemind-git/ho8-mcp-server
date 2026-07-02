@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sample 03 — Task Manager · HO8 Starter · ForgeMind AI</title>
+<title>Sample 03 — API Wrapper · HO8 Starter · ForgeMind AI</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
@@ -61,45 +61,43 @@
   <div class="wrap">
     <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
     <div class="eyebrow">HO8 · Sample 03 · Starter</div>
-    <h1>Task Manager MCP Server</h1>
-    <p class="lede">Build an MCP server that lets Claude read and write your task list.</p>
+    <h1>API Wrapper MCP Server</h1>
+    <p class="lede">Build an MCP server that wraps a free public API so Claude can call it as a tool.</p>
     <div class="pills">
       <span class="pill wk">Week 4</span>
       <span class="pill mod">M12 · MCP</span>
       <span class="pill fmt">Solo</span>
-      <span class="pill kind">Read + Write</span>
+      <span class="pill kind">Public API</span>
     </div>
 
     <div class="starter">
       <div class="th"><i data-lucide="package-open"></i> Starter branch — copy &amp; use</div>
-      <p>This server already works out of the box. No API key needed — it runs on your Claude.ai subscription via Claude Desktop. Just connect it and start asking.</p>
+      <p>This server already works with the free Open-Meteo API. Run it, connect it to Claude Desktop, then tweak it for your own use. No API key needed — it uses your Claude.ai subscription.</p>
     </div>
 
     <div class="card">
       <div class="section-h"><i data-lucide="target"></i> Problem</div>
-      <p>Your tasks live in a tracker and you context-switch constantly. Build an MCP server that lets Claude read and write your task list.</p>
+      <p>You rely on a public API but copy-pasting output into chat is clunky. Build an MCP server that wraps a free public API as a Claude tool.</p>
 
       <div class="section-h"><i data-lucide="wrench"></i> Tools it gives Claude</div>
       <ul>
-        <li><code>list_tasks(status?)</code> — returns [{id, title, status, due_date}]</li>
-        <li><code>add_task(title, due?)</code> — returns {id}</li>
-        <li><code>complete_task(id)</code> — returns ok</li>
+        <li><code>get_weather(city)</code> — returns temp, condition, humidity</li>
+        <li><code>get_forecast(city, days)</code> — returns a list of {date, high, low}</li>
       </ul>
 
       <div class="section-h"><i data-lucide="database"></i> Data source</div>
-      <p>SQLite local file. Store tasks in a <code>tasks.db</code> file next to server.py.</p>
+      <p>Open-Meteo free weather API (no API key required). Docs: <a href="https://open-meteo.com/en/docs" target="_blank">open-meteo.com/en/docs</a></p>
 
       <div class="section-h"><i data-lucide="list-ordered"></i> Steps</div>
       <ol>
         <li>Run <code>pip install mcp</code></li>
-        <li>(Optional) Run <code>python test_tool.py</code> to confirm everything works — you should see "All tests passed."</li>
-        <li>Edit <code>claude_desktop_config.json</code> so the path points to your copy of <code>server.py</code></li>
-        <li>Paste the config into Claude Desktop Settings &gt; Developer &gt; Edit Config, then save</li>
-        <li>Quit and reopen Claude Desktop to load the tools</li>
-        <li>Ask Claude: "What tasks are open?"</li>
+        <li>(Optional) Run <code>python test_tool.py</code> — you should see live weather and "All tests passed"</li>
+        <li>Edit <code>claude_desktop_config.json</code> so the path points to <code>server.py</code> on your computer</li>
+        <li>Paste that config into Claude Desktop Settings &gt; Developer, then quit and reopen Claude Desktop</li>
+        <li>Ask Claude a weather question, like "What's the weather in Mumbai?"</li>
       </ol>
 
-      <div class="trythis"><strong>Try this:</strong> "Using my task-manager tools, show my open tasks, then add 'Prepare slides for Monday standup' due 2026-07-03, and list my tasks again to confirm."</div>
+      <div class="trythis"><strong>Try this prompt:</strong> "Using my weather tools, what's the weather right now in Lisbon, and give me the 3-day forecast — should I pack a raincoat?"</div>
     </div>
 
     <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>

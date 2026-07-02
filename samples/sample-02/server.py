@@ -1,140 +1,54 @@
-# MCP Server: Weather (API Wrapper)
+# MCP Server: Customer Lookup
 # Connects to Claude Desktop — no ANTHROPIC_API_KEY needed
 # Uses your Claude.ai subscription via Claude Desktop
 #
-# This is a WORKING example. Clone it, run it, see it work. It wraps the free
-# Open-Meteo weather API (no signup, no API key) so Claude can answer real
-# weather questions instead of guessing. Only the Python standard library and
-# the `mcp` package are used.
+# This is a WORKING example. Clone it, run it, see it work — then swap in your
+# own data (sample-data/customers.csv) and adapt the tools for your use case.
 
-import json
-import urllib.parse
-import urllib.request
+import csv
+import os
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("weather")
+mcp = FastMCP("customer-lookup")
 
-# Open-Meteo's weather_code is a number. This small dictionary turns the most
-# common codes into plain-English conditions a person (and Claude) can read.
-WEATHER_CODES = {
-    0: "Clear",
-    1: "Mainly clear",
-    2: "Partly cloudy",
-    3: "Overcast",
-    45: "Fog",
-    48: "Fog",
-    51: "Drizzle",
-    53: "Drizzle",
-    55: "Drizzle",
-    61: "Rain",
-    63: "Rain",
-    65: "Rain",
-    71: "Snow",
-    73: "Snow",
-    75: "Snow",
-    80: "Rain showers",
-    81: "Rain showers",
-    82: "Rain showers",
-    95: "Thunderstorm",
-}
+# The CSV that holds our customer data. It lives in the sample-data/ folder
+# right next to this file, so the server finds it no matter where you run it.
+DATA_FILE = os.path.join(os.path.dirname(__file__), "sample-data", "customers.csv")
 
 
-def _get_json(url: str) -> dict:
-    """Fetch a URL and return the parsed JSON. Times out after 10 seconds so the
-    server never hangs waiting on the network."""
-    with urllib.request.urlopen(url, timeout=10) as response:
-        return json.loads(response.read().decode("utf-8"))
-
-
-def _geocode(city: str) -> dict:
-    """Turn a city name (e.g. "Berlin") into latitude/longitude using
-    Open-Meteo's free geocoding API. Returns a dict with 'lat', 'lon' and the
-    resolved 'name', or raises ValueError if the city can't be found."""
-    # quote() makes the city name safe to drop into a URL (handles spaces, etc.)
-    query = urllib.parse.quote(city)
-    url = (
-        "https://geocoding-api.open-meteo.com/v1/search"
-        f"?name={query}&count=1"
-    )
-    data = _get_json(url)
-    results = data.get("results")
-    if not results:
-        raise ValueError(f"Could not find a city called '{city}'.")
-    top = results[0]
-    return {
-        "lat": top["latitude"],
-        "lon": top["longitude"],
-        "name": top["name"],
-    }
+def _load_customers() -> list[dict]:
+    """Read every row of the CSV into a list of dictionaries."""
+    with open(DATA_FILE, newline="", encoding="utf-8") as f:
+        return list(csv.DictReader(f))
 
 
 @mcp.tool()
-def get_weather(city: str) -> dict:
-    """Get the CURRENT weather for a city.
+def lookup_customer(id_or_name: str) -> dict:
+    """Look up one customer by their ID (e.g. 'C001') or by name (e.g. 'Alice').
 
-    Returns a dict with the city name, temperature (°C), a plain-English
-    condition and the humidity (%). Example:
-    {"city": "Berlin", "temp": 18.2, "condition": "Partly cloudy", "humidity": 61}
+    Returns the customer's name, email, plan and status. Matching is
+    case-insensitive and also works on partial names.
     """
-    try:
-        place = _geocode(city)
-        # Ask Open-Meteo for the current temperature, humidity and weather code.
-        url = (
-            "https://api.open-meteo.com/v1/forecast"
-            f"?latitude={place['lat']}&longitude={place['lon']}"
-            "&current=temperature_2m,relative_humidity_2m,weather_code"
-            "&timezone=auto"
-        )
-        data = _get_json(url)
-        current = data["current"]
-        code = current["weather_code"]
-        return {
-            "city": place["name"],
-            "temp": current["temperature_2m"],
-            "condition": WEATHER_CODES.get(code, "Unknown"),
-            "humidity": current["relative_humidity_2m"],
-        }
-    except ValueError as e:
-        # City not found — return a friendly message instead of crashing.
-        return {"error": str(e)}
-    except Exception as e:
-        # Any network / parsing problem ends up here.
-        return {"error": f"Could not fetch weather for '{city}': {e}"}
+    query = id_or_name.strip().lower()
+    for row in _load_customers():
+        if row["id"].lower() == query or query in row["name"].lower():
+            return {
+                "id": row["id"],
+                "name": row["name"],
+                "email": row["email"],
+                "plan": row["plan"],
+                "status": row["status"],
+            }
+    return {"error": f"No customer found matching '{id_or_name}'."}
 
 
 @mcp.tool()
-def get_forecast(city: str, days: int = 3) -> list:
-    """Get a multi-day forecast (daily high/low) for a city.
-
-    `days` is clamped to between 1 and 7. Returns a list of dicts like:
-    [{"date": "2026-06-28", "high": 24.1, "low": 14.3}, ...]
-    """
-    try:
-        # Keep days within the range Open-Meteo supports (1 to 7).
-        days = max(1, min(7, days))
-        place = _geocode(city)
-        url = (
-            "https://api.open-meteo.com/v1/forecast"
-            f"?latitude={place['lat']}&longitude={place['lon']}"
-            "&daily=temperature_2m_max,temperature_2m_min"
-            f"&forecast_days={days}&timezone=auto"
-        )
-        data = _get_json(url)
-        daily = data["daily"]
-        # The API returns parallel lists (dates, highs, lows). Zip them together
-        # into one tidy row per day.
-        forecast = []
-        for date, high, low in zip(
-            daily["time"],
-            daily["temperature_2m_max"],
-            daily["temperature_2m_min"],
-        ):
-            forecast.append({"date": date, "high": high, "low": low})
-        return forecast
-    except ValueError as e:
-        return [{"error": str(e)}]
-    except Exception as e:
-        return [{"error": f"Could not fetch forecast for '{city}': {e}"}]
+def list_customers() -> list:
+    """List every customer with their ID, name and plan."""
+    return [
+        {"id": row["id"], "name": row["name"], "plan": row["plan"]}
+        for row in _load_customers()
+    ]
 
 
 if __name__ == "__main__":

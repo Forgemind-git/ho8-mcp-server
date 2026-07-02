@@ -1,33 +1,33 @@
 """
-test_tool.py — Manual test for your MCP tools (no Claude or API key required)
+test_tool.py — Quick local test for your MCP tools (no Claude required).
 Run: python test_tool.py
 """
 
 import sys
 import os
 
+# Make sure we can import server.py that sits next to this file.
 sys.path.insert(0, os.path.dirname(__file__))
 
-from server import search_docs, read_doc
+from server import get_quote, get_commission
 
 
 def run_tests():
-    print("=== Doc Search MCP Server — Tool Tests ===\n")
+    print("=== Pricing Calculator MCP Server — Tool Tests ===\n")
 
-    # Test 1 — search for "refund", which appears in docs/billing.md
-    print("Test 1: search_docs('refund')")
-    result = search_docs("refund")
-    for match in result:
-        print(f"  - {match['filename']}: {match['snippet']}")
-    assert len(result) > 0, "Expected at least one match for 'refund'"
-    print(f"  PASS — found {len(result)} match(es)\n")
+    # Test 1 — a quote for 10 seats on the pro plan, billed for a full year.
+    result = get_quote(10, "pro", 12)
+    print("get_quote(10, 'pro', 12) ->", result)
+    assert "error" not in result, "quote should not return an error"
+    assert "monthly" in result, "quote should include a 'monthly' figure"
+    print("PASS\n")
 
-    # Test 2 — read a specific document and check we got its content
-    print("Test 2: read_doc('faq.txt')")
-    result = read_doc("faq.txt")
-    print(f"  keys returned: {list(result.keys())}")
-    assert "content" in result, "Expected a 'content' key in the result"
-    print(f"  PASS — read {len(result['content'])} characters from faq.txt\n")
+    # Test 2 — senior-tier commission on a $5,000 deal = 8% = $400.00.
+    result = get_commission(5000.0, "senior")
+    print("get_commission(5000.0, 'senior') ->", result)
+    assert "amount" in result, "commission should include an 'amount'"
+    assert result["amount"] == 400.0, "8% of 5000 should be 400.0"
+    print("PASS\n")
 
     print("All tests passed.")
 

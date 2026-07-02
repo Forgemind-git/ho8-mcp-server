@@ -1,83 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HO8: Your Own MCP Server — Starter</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F8F9FA; color:#1a1a2e; }
-    header { background:#6D28D9; color:#fff; padding:40px 32px 32px; }
-    .badge { font-size:12px; font-weight:700; letter-spacing:.08em; opacity:.75; text-transform:uppercase; margin-bottom:8px; }
-    h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
-    header p { font-size:14px; opacity:.85; max-width:600px; line-height:1.6; }
-    .starter-bar { background:#FEF3C7; border-left:4px solid #D97706; padding:14px 20px; margin:24px 32px; border-radius:4px; font-size:14px; color:#92400E; line-height:1.6; }
-    .starter-bar strong { color:#92400E; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; padding:0 32px 40px; }
-    .card { background:#fff; border-radius:10px; box-shadow:0 1px 6px rgba(0,0,0,.08); overflow:hidden; }
-    .card-top { background:#6D28D9; padding:12px 16px; display:flex; align-items:center; gap:10px; }
-    .num { background:rgba(255,255,255,.25); color:#fff; font-weight:800; font-size:12px; border-radius:20px; padding:2px 9px; }
-    .card-top h3 { color:#fff; font-size:14px; font-weight:700; }
-    .card-body { padding:16px; }
-    .card-body p { font-size:13px; color:#4B5563; line-height:1.6; margin-bottom:14px; }
-    .todo-badge { display:inline-block; background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:2px 8px; border-radius:20px; margin-bottom:12px; }
-    .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#6D28D9; color:#fff; text-decoration:none; border-radius:6px; font-size:13px; font-weight:600; }
-    footer { text-align:center; padding:24px; color:#9CA3AF; font-size:13px; border-top:1px solid #E5E7EB; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HO8 — Your Own MCP Server · Starter · ForgeMind AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --pageBg:#F7F7F3; --headerBg:#0F0F10; --headerText:#F5F5F2; --headerMuted:#A1A1AA;
+    --headerBorder:rgba(255,255,255,.12); --cardBg:#fff; --border:#E5E5E0;
+    --text:#111; --textSec:#6B7280; --textMuted:#999; --primary:#dc2626; --primaryHover:#b91c1c;
+    --hover:#EFEEE6; --green:#0F6E56; --purple:#534AB7; --amber:#854F0B;
+    --shadowSm:0 1px 2px rgba(0,0,0,.08); --shadowMd:0 8px 24px rgba(0,0,0,.06);
+    --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{font-family:var(--font);background:var(--pageBg);color:var(--text);}
+  a{color:inherit;}
+  header{height:56px;background:var(--headerBg);color:var(--headerText);display:flex;align-items:center;
+    padding:0 20px;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--headerBorder);}
+  .wordmark{font-weight:900;font-size:16px;letter-spacing:.02em;display:flex;align-items:center;gap:2px;}
+  .wordmark .badge{background:var(--primary);color:#fff;padding:1px 6px;border-radius:5px;margin-left:2px;font-weight:800;}
+  .header-right{margin-left:auto;color:var(--headerMuted);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;}
+  .header-right .dot{width:6px;height:6px;border-radius:99px;background:var(--green);}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 24px 64px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);}
+  h1{font-size:30px;font-weight:700;margin:8px 0 10px;letter-spacing:-.01em;}
+  .lede{font-size:14px;color:var(--textSec);line-height:1.6;margin:0 0 20px;max-width:680px;}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;font-family:var(--mono);}
+  .pill.wk{background:#E7F0FE;color:#1877F2;} .pill.mod{background:#EEEDFE;color:#3C3489;}
+  .pill.fmt{background:#E1F5EE;color:#0F6E56;} .pill.kind{background:#FAEEDA;color:#854F0B;}
+  /* starter callout */
+  .starter{background:#FDF9EF;border:1px solid #EBD9B0;border-radius:8px;padding:15px 18px;margin-bottom:26px;}
+  .starter .th{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;color:var(--amber);margin-bottom:5px;}
+  .starter p{font-size:13px;color:var(--textSec);line-height:1.6;margin:0;}
+  .section-h{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:600;margin:0 0 14px;}
+  .section-h svg{color:var(--primary);}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .sample{background:var(--cardBg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadowSm);
+    padding:16px;display:flex;flex-direction:column;gap:8px;transition:box-shadow .15s,transform .15s;}
+  .sample:hover{box-shadow:var(--shadowMd);transform:translateY(-1px);}
+  .sample .num{font-family:var(--mono);font-size:11px;font-weight:500;color:#fff;background:var(--primary);
+    min-width:22px;height:22px;padding:0 8px;border-radius:99px;display:inline-flex;align-items:center;justify-content:center;align-self:flex-start;}
+  .sample h3{font-size:14px;font-weight:600;margin:2px 0 0;text-transform:capitalize;}
+  .sample p{font-size:13px;line-height:1.5;color:var(--text);margin:0;}
+  .sample .ready{font-family:var(--mono);font-size:10px;font-weight:500;color:var(--green);background:#E1F5EE;padding:2px 8px;border-radius:99px;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;}
+  .sample .view{margin-top:auto;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--primary);text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+  .sample .view:hover{color:var(--primaryHover);}
+  code{font-family:var(--mono);font-size:12px;background:#F1F0EA;padding:1px 5px;border-radius:4px;}
+  footer{border-top:1px solid var(--border);margin-top:40px;padding-top:18px;font-size:12px;color:var(--textMuted);font-family:var(--mono);text-align:center;}
+  @media(max-width:680px){.grid{grid-template-columns:1fr;} h1{font-size:24px;}}
+</style>
 </head>
 <body>
   <header>
-    <div class="badge">HO8 · Forgemind AI Claude Course · Starter Template</div>
-    <h1>Your Own MCP Server</h1>
-    <p>Your starting point. Each sample below is a complete, working MCP server you can run right now — then adapt for your own data. No API key needed; everything uses your Claude.ai subscription via Claude Desktop.</p>
+    <span class="wordmark">FORGE<span class="badge">COURSE</span></span>
+    <span class="header-right"><span class="dot"></span>ForgeMind AI · Hands-On Portfolio</span>
   </header>
-  <div class="starter-bar">
-    <strong>This is the starter branch — copy &amp; use.</strong> Every sample already works with the included example data. Pick ONE, run it, connect it to Claude Desktop, then swap in your own data.
-    To see the polished reference, switch to the <code>main</code> branch or visit the GitHub Pages site.
-  </div>
-  <div class="grid">
 
-    <div class="card">
-      <div class="card-top"><span class="num">Sample 1</span><h3>customer lookup</h3></div>
-      <div class="card-body">
-        <span class="todo-badge" style="background:#D1FAE5;color:#065F46">Ready to run</span>
-        <p>Your team keeps customer data in a sheet or database and re-answers the same lookups all day. Build an MCP server that exposes a customer_lookup tool to Claude Desktop.</p>
-        <a href="./samples/sample-01/" class="btn">Start here</a>
-      </div>
+  <div class="wrap">
+    <div class="eyebrow">HO8 · Week 4 · Module M12 — Starter Template</div>
+    <h1>Your Own MCP Server</h1>
+    <p class="lede">Your starting point. Each sample below is a complete, working MCP server you can run right now — then adapt for your own data. No API key needed; everything uses your Claude.ai subscription via Claude Desktop.</p>
+    <div class="pills">
+      <span class="pill wk">Week 4</span>
+      <span class="pill mod">M12 · MCP</span>
+      <span class="pill fmt">Solo</span>
+      <span class="pill kind">Starter</span>
     </div>
-    <div class="card">
-      <div class="card-top"><span class="num">Sample 2</span><h3>api wrapper</h3></div>
-      <div class="card-body">
-        <span class="todo-badge" style="background:#D1FAE5;color:#065F46">Ready to run</span>
-        <p>You rely on a public API but copy-pasting output into chat is clunky. Build an MCP server that wraps a free public API as a Claude tool.</p>
-        <a href="./samples/sample-02/" class="btn">Start here</a>
-      </div>
+
+    <div class="starter">
+      <div class="th"><i data-lucide="package-open"></i> This is the starter branch — copy &amp; use</div>
+      <p>Every sample already works with the included example data. Pick <b>one</b>, run it, connect it to Claude Desktop, then swap in your own data. To see the polished reference, switch to the <code>main</code> branch or visit the GitHub Pages site.</p>
     </div>
-    <div class="card">
-      <div class="card-top"><span class="num">Sample 3</span><h3>task manager</h3></div>
-      <div class="card-body">
-        <span class="todo-badge" style="background:#D1FAE5;color:#065F46">Ready to run</span>
-        <p>Your tasks live in a tracker and you context-switch constantly. Build an MCP server that lets Claude read and write your task list.</p>
-        <a href="./samples/sample-03/" class="btn">Start here</a>
-      </div>
+
+    <div class="section-h"><i data-lucide="server"></i> Pick a sample to run</div>
+    <div class="grid">
+      <div class="sample"><span class="num">Sample 1</span><h3>Customer Lookup</h3><span class="ready"><i data-lucide="check"></i> Ready to run</span><p>Your team keeps customer data in a sheet or database and re-answers the same lookups all day. Build an MCP server that exposes a customer_lookup tool to Claude Desktop.</p><a class="view" href="./samples/sample-01/">Start here <i data-lucide="arrow-right"></i></a></div>
+      <div class="sample"><span class="num">Sample 2</span><h3>API Wrapper</h3><span class="ready"><i data-lucide="check"></i> Ready to run</span><p>You rely on a public API but copy-pasting output into chat is clunky. Build an MCP server that wraps a free public API as a Claude tool.</p><a class="view" href="./samples/sample-02/">Start here <i data-lucide="arrow-right"></i></a></div>
+      <div class="sample"><span class="num">Sample 3</span><h3>Task Manager</h3><span class="ready"><i data-lucide="check"></i> Ready to run</span><p>Your tasks live in a tracker and you context-switch constantly. Build an MCP server that lets Claude read and write your task list.</p><a class="view" href="./samples/sample-03/">Start here <i data-lucide="arrow-right"></i></a></div>
+      <div class="sample"><span class="num">Sample 4</span><h3>Pricing Calculator</h3><span class="ready"><i data-lucide="check"></i> Ready to run</span><p>Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.</p><a class="view" href="./samples/sample-04/">Start here <i data-lucide="arrow-right"></i></a></div>
+      <div class="sample"><span class="num">Sample 5</span><h3>Doc Search</h3><span class="ready"><i data-lucide="check"></i> Ready to run</span><p>Your important documents are scattered in a folder and finding the right one wastes time. Build an MCP server that searches them for Claude.</p><a class="view" href="./samples/sample-05/">Start here <i data-lucide="arrow-right"></i></a></div>
     </div>
-    <div class="card">
-      <div class="card-top"><span class="num">Sample 4</span><h3>pricing calculator</h3></div>
-      <div class="card-body">
-        <span class="todo-badge" style="background:#D1FAE5;color:#065F46">Ready to run</span>
-        <p>Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.</p>
-        <a href="./samples/sample-04/" class="btn">Start here</a>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-top"><span class="num">Sample 5</span><h3>doc search</h3></div>
-      <div class="card-body">
-        <span class="todo-badge" style="background:#D1FAE5;color:#065F46">Ready to run</span>
-        <p>Your important documents are scattered in a folder and finding the right one wastes time. Build an MCP server that searches them for Claude.</p>
-        <a href="./samples/sample-05/" class="btn">Start here</a>
-      </div>
-    </div>
+
+    <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>
   </div>
-  <footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

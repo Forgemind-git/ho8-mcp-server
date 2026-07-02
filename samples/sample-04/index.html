@@ -1,65 +1,108 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sample 4 — Pricing Calculator | HO8 Starter</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; background:#F8F9FA; color:#1a1a2e; line-height:1.7; }
-    header { background:#6D28D9; color:#fff; padding:36px 32px 28px; }
-    header a { color:#fff; opacity:.75; font-size:13px; text-decoration:none; display:inline-block; margin-bottom:12px; }
-    header .badge { font-size:12px; font-weight:700; letter-spacing:.08em; opacity:.8; text-transform:uppercase; margin-bottom:6px; }
-    header h1 { font-size:26px; font-weight:800; margin-bottom:6px; }
-    header p { font-size:14px; opacity:.85; max-width:640px; }
-    .starter-bar { background:#FEF3C7; border-left:4px solid #D97706; padding:14px 20px; margin:24px 32px; border-radius:4px; font-size:14px; color:#92400E; }
-    main { max-width:820px; margin:0 auto; padding:24px 32px 60px; }
-    h2 { font-size:18px; font-weight:700; color:#6D28D9; margin:28px 0 8px; border-bottom:2px solid #EDE9FE; padding-bottom:4px; }
-    p { font-size:14px; color:#374151; margin-bottom:10px; }
-    ul, ol { padding-left:20px; margin-bottom:10px; }
-    li { font-size:14px; color:#374151; margin-bottom:4px; }
-    code { background:#EDE9FE; color:#4C1D95; padding:1px 5px; border-radius:3px; font-size:13px; }
-    .todo { background:#FEF3C7; border-left:3px solid #D97706; padding:10px 14px; border-radius:4px; font-size:13px; color:#92400E; margin:10px 0; }
-    footer { text-align:center; padding:24px; color:#9CA3AF; font-size:13px; border-top:1px solid #E5E7EB; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample 04 — Pricing Calculator · HO8 Starter · ForgeMind AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+  :root{
+    --pageBg:#F7F7F3; --headerBg:#0F0F10; --headerText:#F5F5F2; --headerMuted:#A1A1AA;
+    --headerBorder:rgba(255,255,255,.12); --cardBg:#fff; --border:#E5E5E0;
+    --text:#111; --textSec:#6B7280; --textMuted:#999; --primary:#dc2626; --primaryHover:#b91c1c;
+    --hover:#EFEEE6; --green:#0F6E56; --purple:#534AB7; --amber:#854F0B;
+    --shadowSm:0 1px 2px rgba(0,0,0,.08); --shadowMd:0 8px 24px rgba(0,0,0,.06);
+    --font:'DM Sans',system-ui,sans-serif; --mono:'DM Mono',monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{font-family:var(--font);background:var(--pageBg);color:var(--text);}
+  a{color:inherit;}
+  header{height:56px;background:var(--headerBg);color:var(--headerText);display:flex;align-items:center;
+    padding:0 20px;position:sticky;top:0;z-index:10;border-bottom:1px solid var(--headerBorder);}
+  .wordmark{font-weight:900;font-size:16px;letter-spacing:.02em;display:flex;align-items:center;gap:2px;}
+  .wordmark .badge{background:var(--primary);color:#fff;padding:1px 6px;border-radius:5px;margin-left:2px;font-weight:800;}
+  .header-right{margin-left:auto;color:var(--headerMuted);font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;}
+  .header-right .dot{width:6px;height:6px;border-radius:99px;background:var(--green);}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 24px 64px;}
+  .back{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--textSec);text-decoration:none;display:inline-flex;align-items:center;gap:5px;margin-bottom:18px;}
+  .back:hover{color:var(--primary);}
+  .eyebrow{font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--primary);}
+  h1{font-size:28px;font-weight:700;margin:8px 0 10px;letter-spacing:-.01em;}
+  .lede{font-size:14px;color:var(--textSec);line-height:1.6;margin:0 0 22px;max-width:680px;}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+  .pill{font-size:11px;font-weight:600;padding:4px 10px;border-radius:99px;font-family:var(--mono);}
+  .pill.wk{background:#E7F0FE;color:#1877F2;} .pill.mod{background:#EEEDFE;color:#3C3489;}
+  .pill.fmt{background:#E1F5EE;color:#0F6E56;} .pill.kind{background:#FAEEDA;color:#854F0B;}
+  .starter{background:#FDF9EF;border:1px solid #EBD9B0;border-radius:8px;padding:14px 18px;margin-bottom:24px;}
+  .starter .th{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;color:var(--amber);margin-bottom:4px;}
+  .starter p{font-size:13px;color:var(--textSec);line-height:1.55;margin:0;}
+  .card{background:var(--cardBg);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadowSm);padding:24px 26px;}
+  .section-h{display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;margin:28px 0 12px;}
+  .section-h:first-child{margin-top:0;}
+  .section-h svg{color:var(--primary);width:18px;height:18px;}
+  .card p{font-size:14px;color:var(--text);line-height:1.65;margin:0 0 10px;}
+  .card ul,.card ol{padding-left:20px;margin:0 0 10px;}
+  .card li{font-size:14px;color:var(--text);line-height:1.6;margin-bottom:6px;}
+  .trythis{background:#FDF9EF;border-left:3px solid var(--amber);border-radius:4px;padding:12px 15px;margin:14px 0 0;font-size:13.5px;color:var(--text);line-height:1.6;}
+  .trythis strong{color:var(--amber);}
+  code{font-family:var(--mono);font-size:12px;background:#F1F0EA;padding:1px 5px;border-radius:4px;}
+  footer{border-top:1px solid var(--border);margin-top:40px;padding-top:18px;font-size:12px;color:var(--textMuted);font-family:var(--mono);text-align:center;}
+  @media(max-width:680px){h1{font-size:23px;} .card{padding:18px;}}
+</style>
 </head>
 <body>
-<header>
-  <a href="../../">Back to HO8</a>
-  <div class="badge">HO8 · Sample 4 · Starter</div>
-  <h1>Pricing Calculator MCP Server</h1>
-  <p>Build an MCP server that lets Claude calculate quotes and commissions from your pricing table.</p>
-</header>
-<div class="starter-bar">
-  <strong>Starter branch — copy &amp; use.</strong> This server already works as-is. No API key needed — it runs on your Claude.ai subscription through Claude Desktop. Just connect it and ask for a quote.
-</div>
-<main>
-  <h2>Problem</h2>
-  <p>Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.</p>
+  <header>
+    <span class="wordmark">FORGE<span class="badge">COURSE</span></span>
+    <span class="header-right"><span class="dot"></span>ForgeMind AI · Hands-On Portfolio</span>
+  </header>
 
-  <h2>Tools it gives Claude</h2>
-  <ul>
-    <li><code>get_quote(seats, plan, term_months)</code> — returns {monthly, annual, discount}</li>
-    <li><code>get_commission(deal_value, tier)</code> — returns {amount, pct}</li>
-  </ul>
+  <div class="wrap">
+    <a class="back" href="../../"><i data-lucide="arrow-left"></i> Back to HO8</a>
+    <div class="eyebrow">HO8 · Sample 04 · Starter</div>
+    <h1>Pricing Calculator MCP Server</h1>
+    <p class="lede">Build an MCP server that lets Claude calculate quotes and commissions from your pricing table.</p>
+    <div class="pills">
+      <span class="pill wk">Week 4</span>
+      <span class="pill mod">M12 · MCP</span>
+      <span class="pill fmt">Solo</span>
+      <span class="pill kind">Calculator</span>
+    </div>
 
-  <h2>Data source</h2>
-  <p>Hardcoded pricing table in Python — no external database needed.</p>
+    <div class="starter">
+      <div class="th"><i data-lucide="package-open"></i> Starter branch — copy &amp; use</div>
+      <p>This server already works as-is. No API key needed — it runs on your Claude.ai subscription through Claude Desktop. Just connect it and ask for a quote.</p>
+    </div>
 
-  <h2>Steps</h2>
-  <ol>
-    <li>Run <code>pip install mcp</code></li>
-    <li>(Optional) Run <code>python test_tool.py</code> to confirm the tools work — you should see "All tests passed."</li>
-    <li>Edit the path in <code>claude_desktop_config.json</code> so it points to your copy of <code>server.py</code></li>
-    <li>Paste the <code>pricing-calculator</code> block into Claude Desktop &rarr; Settings &rarr; Developer &rarr; Edit Config, then save</li>
-    <li>Quit Claude Desktop and reopen it</li>
-    <li>Ask Claude for a quote (see the example prompt below)</li>
-  </ol>
+    <div class="card">
+      <div class="section-h"><i data-lucide="target"></i> Problem</div>
+      <p>Sales reps keep pinging you for the same pricing numbers. Build an MCP server exposing your pricing and commission calculator.</p>
 
-  <div class="starter-bar" style="margin:10px 0;">
-    <strong>Try this prompt:</strong> "Using my pricing tools, quote 10 seats on the pro plan billed annually (12 months), and tell me the senior-tier commission on that annual deal value."
+      <div class="section-h"><i data-lucide="wrench"></i> Tools it gives Claude</div>
+      <ul>
+        <li><code>get_quote(seats, plan, term_months)</code> — returns {monthly, annual, discount}</li>
+        <li><code>get_commission(deal_value, tier)</code> — returns {amount, pct}</li>
+      </ul>
+
+      <div class="section-h"><i data-lucide="database"></i> Data source</div>
+      <p>Hardcoded pricing table in Python — no external database needed.</p>
+
+      <div class="section-h"><i data-lucide="list-ordered"></i> Steps</div>
+      <ol>
+        <li>Run <code>pip install mcp</code></li>
+        <li>(Optional) Run <code>python test_tool.py</code> to confirm the tools work — you should see "All tests passed."</li>
+        <li>Edit the path in <code>claude_desktop_config.json</code> so it points to your copy of <code>server.py</code></li>
+        <li>Paste the <code>pricing-calculator</code> block into Claude Desktop → Settings → Developer → Edit Config, then save</li>
+        <li>Quit Claude Desktop and reopen it</li>
+        <li>Ask Claude for a quote (see the example prompt below)</li>
+      </ol>
+
+      <div class="trythis"><strong>Try this prompt:</strong> "Using my pricing tools, quote 10 seats on the pro plan billed annually (12 months), and tell me the senior-tier commission on that annual deal value."</div>
+    </div>
+
+    <footer>HO8 · Solo · ForgeMind AI — AI Productivity Essentials · Module M12 (Week 4)</footer>
   </div>
-</main>
-<footer>Forgemind AI · Claude Course · HO8 · <a href="https://github.com/Forgemind-git/ho8-mcp-server" style="color:#6D28D9">github.com/Forgemind-git/ho8-mcp-server</a></footer>
+  <script>lucide.createIcons();</script>
 </body>
 </html>
